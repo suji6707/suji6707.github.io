@@ -28,11 +28,3 @@ Origin이 8000인 것으로 간주되기 때문에
 
 
 ![image](https://github.com/suji6707/suji6707.github.io/assets/111227732/042ed50c-8fa2-4a6f-aba2-1fc01698caea)
-
-
-```typescript
-const a: number = 1;
-console.log(a) // 1
-```
-
-`a` is number
