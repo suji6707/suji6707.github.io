@@ -1,5 +1,5 @@
 +++
-title = "CORS 에러 원인"
+title = 'CORS 에러 원인'
 date = 2024-04-06T22:50:44+09:00
 +++
 ## CORS
