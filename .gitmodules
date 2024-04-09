@@ -1,3 +1,7 @@
 [submodule "themes/ananke"]
 	path = themes/ananke
 	url = git@github.com:suji6707/gohugo-theme-ananke.git
+[submodule "themes/tailwind"]
+	path = themes/tailwind
+	url = https://github.com/suji6707/hugo-theme-tailwind.git
+	branch = main
