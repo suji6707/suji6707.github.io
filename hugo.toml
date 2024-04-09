@@ -1,5 +1,5 @@
 baseURL = "https://example.com/"
-title = "Suji's Hugo Site"
+title = "Suji's daily scrum"
 author = "Jisu Heo"
 paginate = 10
 languageCode = "en"
