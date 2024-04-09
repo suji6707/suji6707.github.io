@@ -3,6 +3,7 @@ categories = ['Web']
 tags = ['CORS']
 title = 'CORS 에러 원인'
 date = 2024-04-06T22:50:44+09:00
+draft = true
 +++
 ## CORS
 Cross Origin Resource Sharing이란 다른 출처간 요청을 허용하는 것.
