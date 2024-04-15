@@ -33,25 +33,6 @@ This is **bold** text, and this is *emphasized* text.
 🍎 중요한 건, save나 크롤링이 실패했다고 해서 계속 null을 리턴할 것이 아니라
 적절한 시점에 throw Error를 하고 상위 함수로 전파시켜 로그를 남기게 하는 것이다. 
 
----
-### 배포
-
-Docker 커맨드 구성: 추출된 디렉토리는 Docker 컨테이너의 /LocalBuild/envFile/ 디렉토리로 볼륨 마운트되며, 환경 변수 파일의 이름은 컨테이너 내의 ENV_VAR_FILE 환경 변수로 설정됩니다. 이를 통해, 컨테이너 내부에서 해당 환경 변수 파일을 참조하거나 사용할 수 있게 됩니다.
-```shell
-if [ -n "$environment_variable_file" ]
-then
-    environment_variable_file_path=$(allOSRealPath "$environment_variable_file")
-    environment_variable_file_dir=$(dirname "$environment_variable_file_path")
-    environment_variable_file_basename=$(basename "$environment_variable_file")
-    docker_command+=" -v \"$environment_variable_file_dir:/LocalBuild/envFile/\" -e \"ENV_VAR_FILE=$environment_variable_file_basename\""
-fi
-```
-
-
----
-TODO
-- 전체 에러처리. 지금은 쿼리만 잘못넣어도 500 에러인데
-tracking, pre-pay 등 참조해서 에러처리 맨 바깥에서 또는 일괄적으로 어떻게 처리하는지 보기.
 
 
 ---
@@ -96,17 +77,6 @@ tracking, pre-pay 등 참조해서 에러처리 맨 바깥에서 또는 일괄�
 	isPc/admin 정보에 따라 만료시간을 설정해 리프레시 토큰을 만듦
 	- JwtProvider는 
 
----
-##### CI/CD
-지금 수영님은 code build 만드는 중.
-- 여기에 $ENVIRONMENT 환경변수 넣게 되어있음
-사실 서버 실행 설정은 buildspec.yml에 다 있음
-
-🍏 사실 CI/CD란게 대단한 건 아님.
-아마존에서 관리되는 ECR 레지스트리가 있고
-로컬에서 git push를 하면 여기로 가고,
-자동으로 이미지를 빌드, 컨테이너를 재실행? 시켜줄 뿐.
-(작업정의에 (docker) image 해시가 계속 바뀜)
 
 ---
 ### Auth 모듈
@@ -115,15 +85,22 @@ tracking, pre-pay 등 참조해서 에러처리 맨 바깥에서 또는 일괄�
 Datalab의, 기존 서버 auth와 호환되는 레거시 auth 모듈을 쓰도록 하자.
 
 ---
-#### 질문
+#### 🍎 a질문
 - 인기 키워드가 없는 서브카테고리의 경우 결과에서 제외해야하는데
 for문을 돌 때 continue로 스킵하려면 그 아랫단에서 계속 null을 리턴하면서 최종 맨 바깥 for문에서 if (! ) continue를 해야하는 번거로움.. 여러 레이어를 타야해서 어쩔수없는건가.
 - DB에서 keywordIds를 봤을때 빈배열이면 throw Error를 하면 젤 편하겠지만
 
+Q. 15초간격 크롤링: millis 를 실제 크롤링 요청이 가는 request 함수에 붙여야하는지?
+아니면 for문에서 붙여야하는지? 
+
+Q. outport에서 레포지토리/어댑터를 바로 주입할 수가 없음. 
+그럼 서비스에서 DB를 뒤져보고, 없을 때만 request 함수를 부르기때문에
+** request에서만 무조건 wait를 시키면 됨.
 
 
 #### 에러 처리
 - 오히려 컨트롤러 말고 서비스단에서 throw Error하면 될듯
+ㄴㄴ 컨트롤러에서?
 
 #### DB / 캐싱
 - 크롤링 전에, categoryId가 category_sales_aggregate 테이블에 있고 year, month가 같으면 해당 항목 보내주는걸로 바꿔야함.

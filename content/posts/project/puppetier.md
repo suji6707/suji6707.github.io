@@ -134,27 +134,33 @@ page.evaluate() 함수 안에서 console.log()를 호출하면, 그 로그는 Pu
 "3:04\n그다음에~",
   "3:04", "3:04", "", "그다음에~", "",  
 
+
+💎 Claude
+필드명은 영어로 통일
+`[\s\S]+` :  followed by one or more characters (which can be any character including whitespace
+this part does correctly include newlines, but since there's nothing directly after the colon before the newline, the capture group ends up not matching anything right there.
+:\s* accounts for any whitespace characters (including newlines) that might appear after the colon
+
+
+mongoDB - duplicate : upsert로 변경. strsub
+-> duplicate의 여부는 video 
+
+```
+db.collection("messages").updateOne(
+{uuid:this.uuid, 
+"key.id":new_message.key.id}, {$set: {uuid: this.uuid, ...new_message}}, {upsert:true})
+
+```
+
 ---
-👗👗👗 현재 상황.👗👗👗 practice/23.puppeteer에 코드 다있음!!
-A. POST /recipe - body: url
-1. recipe 서비스(fetchAndSummarize 함수, 인자는 url) -> outport 호출
-ouport1) outport/ scrap-browser -> puppetier로 subtitles 배열 반환
-ouport2) recipe 서비스에서 outport/ claude 호출해 레시피 요약을 받음
-2. recipe 서비스에서 DB에 url 정보와 함께!! 저장함. (스키마 수정수정🟠)
-3. 로그스태시에서 몽고DB 업데이트된 doc을 Elasticsearch로 넘김
-4. elastic에서 해당 doc을 검색해 가져와서 화면에 띄움(프론트)
 
-B. GET /search - query: query
-검색하면 화면에 띄움
+💎 retry 로직을 잘 달아야함.
 
 
-### Elysia
-- elysia - 타입체크는 옵셔널이라 뒤에 붙일 수밖에 없었음
-- NotFoundError 클래스처럼 YouTubeError 라는 에러 객체를 만들어봄. 속성은 code, error. 생성자는 message.
 
 
 임시백업
-```
+```typescript
 import puppeteer from "puppeteer";
 
 async function main(){
