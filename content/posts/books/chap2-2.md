@@ -166,5 +166,66 @@ DB_query(request, handle_CD_after_DB_query);
 
 
 ---
+### 2.7 블로킹과 논블로킹
+#### 블로킹의 핵심 문제는 입출력
+두 가지 대상. 서로 상호작용하는 모듈 또는 함수, 두 통신 당사자.
+함수의 호출로 인해 호출자의 스레드가 OS에 의해 일시 중지되는 경우는 주로 입출력 작업.
+호출 스레드의 일시중지 없이 입출력 작업을 하려면 논블로킹 호출을 사용
 
+#### 논블로킹과 비동기 입출력
+논블로킹 함수를 호출하면 OS는 스레드를 일시중지시키지 않고 함수를 즉시 반환.
+두 가지 작업은 병행 처리됨.
+데이터를 언제 수신했는지 알 수 있는 방법은
+- 스레드 메시지
+- 데이터 수신 처리를 담당하는 함수를 콜백으로 전달
+
+논블로킹 상황에서 작업이 완성되었는지 확인하는 것은
+1) 인내심이 강한 경우와 
+2) 부족한 경우(인터벌로 계속 확인, 그러나 리소스를 소모)로 나뉨
+
+1. 인내심이 강한 경우
+**네트워크 데이터를 처리하는 handler 함수를 콜백으로 전달하는 논블로킹 함수**: 
+```c
+void handler (void *buf) {
+	// 수신된 네트워크 데이터 처리
+}
+while (true) {
+	fd = accept();
+	recv(fd, buf, NON_BLOCKING_FLAG, handler); // 호출 즉시 반환, 논블로킹
+}
+```
+2. 인내심이 부족한 경우
+네트워크 데이터의 도착을 감지하는 전용 함수 check.
+**recv 함수 자체는 논블로킹이지만, 결론적으로는 동기 호출.** 
+```c
+while (true) {
+	fd = accept();
+	recv(fd, buf, NON_BLOCKING_FLAG); // 논블로킹	
+
+	while (!check(fd)) {
+		// 순환 감지. 데이터가 도착하기 전까지는 hanlder 함수를 사용할 수 없게 함
+		// 그러나 반복문에서 CPU 리소스가 쓸데없이 소모되므로 매우 비효율적
+	}
+	handler(buf);
+}
+```
+
+(참고)
+Node.js 환경에서는 기본적으로 논블로킹 I/O 모델을 사용.
+파일 시스템 작업을 수행할 때 비동기 함수를 사용하여 콜백, 프로미스, 또는 async/await를 통해 논블로킹 방식으로 처리.
+여기서 async/await는 비동기 호출을 제어하기 위해 쓴다고 볼 수.
+```javascript
+const fs = require('fs');
+
+// Read file asynchronously
+fs.readFile('/path/to/file.txt', 'utf8', (err, data) => {
+    if (err) {
+        console.error("An error occurred:", err);
+        return;
+    }
+    console.log("File content:", data);
+});
+
+console.log("This will run before the file is read because readFile is non-blocking.");
+```
 
