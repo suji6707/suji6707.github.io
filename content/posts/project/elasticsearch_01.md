@@ -34,7 +34,54 @@ Hex에서 4 byte는 앞의 8자리.
 
 ---
 ### Recipe Project
-##### 구조
+### 🍊 전반적인 기능
+홈, 검색, My페이지, 설정
+- 홈: 추천 기반. 클릭시 원본 영상과 레시피 요약이 뜸
+- 검색: 한글자씩 입력할때마다 관련 영상 썸네일과 타이틀 리스트가 뜸
+	- 추후 벡터 데이터베이스를 활용해볼 수도 있는 부분
+- My페이지: 좋아요/팔로우 기반
+
+추가 구현
+- MLOps: 데이터만 갈아끼우면 모델링부터 배포까지 자동화되도록.
+처음에는 유저 데이터가 없어서 힘들고,
+우선 유사 그룹 기반(+가입시 취향 선택하게)으로 한 후 데이터가 모이면 도전.
+
+#### 🫐 TODO
+- 1분요리 뚝딱이형, @1mincook 과 같은 채널명/채널ID를 주면
+- 퍼페티어로 동영상 탭을 클릭해 스크롤을 내리면서 className `ytd-rich-grid-renderer` `<a>` 태그 url을 가져와 배열에 담도록 함
+- DB 스키마는 채널id, url []
+
+#### 백엔드 구조
+-  RecipeService
+	- 크롤링 + 요약 + 저장 : fetchAndSummarizeRecipes
+- channel 입력시 해당 채널의 url들을 긁어오는 API
+	- 관련 테이블 구조: One to Many
+
+```
+{
+  _id: ObjectId("507f1f77bcf86cd799439011"),
+  channelName: "채널명",
+  channelID: "UCBR8-60-B28hp2BmDPdntcQ",  // 유튜브 채널 ID
+  description: "채널 설명"
+}
+
+{
+  _id: ObjectId("507f1f77bcf86cd799439011"),
+  channelID: "UCBR8-60-B28hp2BmDPdntcQ",  // 유튜브 채널 ID
+  urls: [
+    "https://www.youtube.com/watch?v=xyz123",
+    "https://www.youtube.com/watch?v=abc456",
+    // 추가 URL들
+  ]
+}
+```
+
+하나의 영상 url에 대한 크롤링이 있다면
+하나의 채널에 대한 url들을 스크래핑하는 기능.
+-> 특정 채널에 대한 url들을 One to Many로 저장해두고
+
+
+#### 프론트 컴포넌트 구조
 Next
 - EnterURL : 레시피 영상 등록
 - SearchResult : Elastic 검색결과
