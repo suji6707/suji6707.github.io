@@ -39,19 +39,20 @@ draft = true
 유스케이스와 관련 함수 정리 
 -> 도메인을 묶는 것이 목적. 대단한 것 없다. 창의성 발휘 X.
 
-#### 1. 추적상품을 등록하는 서비스
+#### 1.🍋 추적상품을 등록하는 서비스
 A. 사용자가 url을 등록하면 
+- /adddable 체크
 - 유효한 url인지 확인하고 파라미터를 제거 후 반환한다
 - 해당 url로 tracking_product가 존재하는지 확인
 - 있으면 반환, 없을때만 크롤링을 진행한다
-    - 강제 업데이트 여부 체크: force = true면 덮어쓰기, 기본 false면 아래 프로세스 진행
+    이것이 쓰이는 API는 두 가지다. 1) /check 2) /update
+    1) check의 경우 아래 프로세스 그대로 진행
+    2) update는 덮어쓰기 (강제 업데이트)
 - 크롤링 후 파싱하여 객체를 반환한다. 
     - a. 기본 정보 -> finalURL(리다이렉트 최종 엔드포인트)을 포함한 상품 정보들
     - b. 디테일 정보 -> 🍊 파싱로직은 getProductDetailInfoViaWeb 참조
 - 파싱한 정보로 해야 할 것:
-    - finalURL로 tracking_product가 존재하는지 한번 더 확인
-    - 존재하면 (기존에는 conversion map에 추가했는데) tracking_product의 url을 업데이트한다
-    - 존재하지 않으면 새로 도메인 객체를 생성하여 DB에 저장한다. DB 테이블은:
+    - 새로 도메인 객체를 생성하여 DB에 저장한다. DB 테이블은:
         - a. tracking_products
         - b. tracking_product_info
  
@@ -99,7 +100,7 @@ keyword_shopping_page.js
 그걸 제외하면 무슨 도메인 로직을 보라는 말인가? 파싱도 빼면.
 
 
-
+---
 
 ##### 컨트롤러
 🍎 실제 랭킹 추적하는 API
