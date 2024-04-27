@@ -278,3 +278,87 @@ Tracking Product는 싱글톤이 아님.
 전체 애플리케이션에 걸쳐 하나만 존재하는가?
 심지어 한 명의 유저 요청에 대해서도 여러개 생성됨.
 따라서 멀티 스레드 작업 다 가능함. 
+
+
+---
+#### 타입 상속
+똑같은 인터페이스/타입에 필드 하나만 다르다고 똑같이 복사해서 쓸 필요 없다.
+extends 상속하면 됨.
+
+`this._metadata = productInfo;` 에서 _metadata에 nvmid, mallPid가 중복해서 들어가겠지만- 여기선 문제가 되지 않음.
+꺼내쓰지 않으면 되므로.
+문제는 entity 변환할 때 단순히 spread로 하면 nvMid가 두 개가 되어 오류가 나므로 풀어서 써줘야한다는 점 정도.?
+
+심지어 ProductInfo > ProductMetadata 집합이 모두 포함되어있을 때
+ProductInfo 자리에 ProductMetadata 를 명시해도 
+타입스크립트는 허용함. 
+요구되는 필드가 모두 있기만 하면 에러를 내지 않음..
+
+즉 모자라면 에러지만 있을 게 다있고 추가로 필드가 더 있어도 그건 
+꺼내쓰지만 않으면 되므로 상관이 없다는 것.
+
+```typescript
+export interface ProductInfo extends ProductMetadata {
+    nvMid?: string;
+    mallPid?: string;
+}
+
+export interface ProductMetadata {
+    type: number;
+    hash?: string;
+    storeId?: number;
+}
+
+export class Product extends Aggregate {
+    private _url!: string;
+    private _nvMid?: string; // review_hash
+    private _mallPid?: string;
+    private _metadata?: ProductMetadata;
+
+    // constructor 생략
+
+    setProductInfo(productInfo: ProductInfo) {
+        this._nvMid = productInfo.nvMid;
+        this._mallPid = productInfo.mallPid;
+        this._metadata = productInfo;
+    }
+}
+```
+
+---
+#### 배송정보?
+```javascript
+"productDeliveryLeadTimes": [{
+    "rangeNumberText": "1",
+    "rangeText": "일 이내",
+    "leadTimeCount": 40,
+    "leadTimePercent": 38
+}, {
+    "rangeNumberText": "2",
+    "rangeText": "일 이내",
+    "leadTimeCount": 51,
+    "leadTimePercent": 48
+}],
+"sellerDeliveryLeadTimes": [{
+    "rangeNumberText": "1",
+    "rangeText": "일 이내",
+    "leadTimeCount": 160,
+    "leadTimePercent": 44
+},
+```
+
+제공된 데이터는 특정 상품의 배송 시간과 관련된 정보를 나타내고 있습니다. 여기에는 productDeliveryLeadTimes와 sellerDeliveryLeadTimes 두 가지 섹션이 포함되어 있습니다. 각 섹션은 배송 시간 범위와 그 범위 내에서의 배송 건수 및 해당 배송 건수가 차지하는 비율을 나타냅니다.
+
+productDeliveryLeadTimes
+이 섹션은 상품이 구매자에게 도달하는 데 필요한 일수를 나타내며, 각 항목은 다음과 같은 정보를 포함합니다:
+
+rangeNumberText: 배송 시간 범위를 나타내는 숫자입니다.
+rangeText: "일 이내" 또는 "일 이상"과 같이 시간 범위를 설명하는 텍스트입니다.
+leadTimeCount: 해당 배송 시간 범위에 속하는 배송 건수입니다.
+leadTimePercent: 전체 배송 건수 대비 해당 범위의 배송 건수가 차지하는 비율입니다.
+예를 들어, 첫 번째 항목에서는 "1일 이내"에 배송이 완료되는 건수가 40건이고, 이는 전체 배송 건수의 38%를 차지한다는 것을 의미합니다.
+
+sellerDeliveryLeadTimes
+이 섹션은 판매자가 상품을 배송하기 시작하는 데 필요한 일수를 나타냅니다. 구조는 productDeliveryLeadTimes와 유사합니다.
+
+이 데이터는 판매자 또는 제품 관리자가 배송 효율성을 평가하고 고객에게 예상 배송 시간을 더 정확하게 알려줄 수 있도록 도와줍니다. 또한, 배송 프로세스의 개선점을 식별하는 데 사용될 수 있습니다.
