@@ -1,213 +1,212 @@
 +++
-title = '랭킹추적 리팩토링 2. 응답 형태'
+title = '랭킹추적 리팩토링 1-2. 상품 등록'
 date = 2024-02-25T00:20:22+09:00
-# draft = true
+draft = true
 +++
-## 랭킹추적 리팩토링 2. 응답 형태
+## 랭킹추적 리팩토링 1-2. 상품 등록
 
-### 인터셉터와 AOP
-ResponseOutput DTO가 인터셉터로 주입된다(constructor)
-이로써 인터셉터는 DTO에 정의된 create 라는 메서드를 쓸 수 있다.
-DTO 주입은 transformation 로직이 DTO 안에 캡슐화되어있기 때문에 인터셉터를 더 유연하게 해준다.
+### 주요 논의사항
+### 공통사항
+마인드셋.
+회사에서 시간을 준 건 엄밀히 '가치창출'의 영역임.
+더 나은 기술력을 가질 수 있는 기반을 만들 시간을 준다 - 
+그러한 차원에서 자기계발도 되어야 한다.
 
-DTO 메서드
-- create는 도메인 raw 데이터를 클라이언트 응답에 맞게 변형해준다.
+원오프로 끝이 아니라.
+네이버에 가도 견줄만한 실력을 갖추겠다는 마인드셋.
+그것이 되어있으면
+재밌게 할 수 있을 것이다.
 
-Response DTO
-- infra/adapter/in/dto 에 정의해두고
-- 컨트롤러에서 
+#### 서비스에서 주입, 도메인 로직은 독립적으로
+다른 코드가 영향을 받지 않도록 한다는 게 핵심.
 
+도메인 안에서 collaborators = 내가 협력하는 도메인들을 어떻게 주입받을것인가 고민.
+단순히 new 하면 안된다.
+하나의 도메인이 다른 도메인을 new 하고 있다? ㄴㄴ -> 강하게 결합되므로.
+단일책임원칙이 아니게 됨.
 
-```typescript
-@Injectable()
-export class getTrackingInterceptor implements NestInterceptor<TrackingProductResponseOutput> {
-  constructor(private responseDto: TrackingProductResponseOutput) {}
+A가 B뿐 아니라 C에 대한 책임도 져야하면 
+의존성이 여러개가 생기므로 
+**도메인에서는 서로가 new를 하면 안된다.**
 
-  intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
-    return next.handle().pipe(
-      map((data) => {
-        const result = this.responseDto.create(data);
-        return result;
-      }),
-    );
-  }
-}
+#### 클라이언트 / 서버 아키텍처
+클라는 화면이 아니라 서비스 레이어라고 보면되는데.
+main함수에 해당
 
-// 클라이언트 반환 필드 : 도메인 필드
-id
-tp_id: trackingProductId
-mall_pid: mallPid
+클라에서 모든 객체를 생성해야하고.
+main에서 메시지를 주고받아서 비즈니스를 구현한다.
 
-```
+#### 개방폐쇄 원칙
+Product 안에 title, price, url이 존재한다면
+이 title이 한국어/외국어가 있으면 
+product가 소스코드를 수정하지 않고도 둘 다 허용해야하고
+그걸 client 코드(서비스 레이어단)에서 제공해야한다는 것.
+
+서비스에서 어떤걸 주입시키느냐에 따라 코드가 달라지도록. 
+en, ko 둘다 해결할 수 있는. 
 
 ---
-## 에러처리
+### 키워드분석(지홍님)
+```
+👠 trend-keyword-analyst.factory.ts 파일 !
+>> generateKeywordStats 함수 잘 봐바.
+어떻게 abstract class로 할 수 있는지
+```
+팩토리에는 비즈니스가 들어가면 안됨
+정책은 자기자신만 갖고 있어야 함.
 
-HttpExceptionFilter -> ExceptionHandleFilter 로 바꿨음.
-- throw 해서 잡지 않으면 http 요청에서 에러가 나고
-그걸 `HttpExceptionFilter`로 처리하고 있었는데
-- 
+keywordId가 일치하는 것들을 넣는 작업이 
+monthly, prdCnt, 등 세 개의 도메인에 반복되므로
+이걸 각자의 도메인으로 로직을 내리는 게 좋다.
 
-#### '확장해서 쓴다'
-common/domain/error
--> 도메인에서 이걸 확장해서 써야하므로
-infra보다는 domain 폴더내 두었음.
+---
+### 상품등록(나)
 
-도메인에서 발생하는 에러는 모두 여기서 확장해서 쓰면 됨.
+#### 1. 레거시 서버 API로 데이터를 가져오는 방법도 있다
+유저 role이 있는데
+레거시 서버에서 갖고와도 될듯??
 
-NotFoundError 반드시 확장해서 써야함. 
-abstract class라서. 
+subscription DB를 직접 조회하는게 못마땅하니.
+엄연히 도메인이 분리된건데.
 
-에러패턴을 보면
-DB 어댑터 에러는 보통 not found 나 sql 에러메시지.
--> 하나의 internal-server.error 를 만들었음.
-크리티컬한 용도로 여기저기서 확장해서 쓰면 됨!
+MSA를 하면 DB도 다를거라. 
+DB 연결 끊었을 때 문제가 되는 상황도 염두에 둔다면
+API로 받는것도 좋음!
 
-에러메시지는 디폴트로 WARN으로 찍히는데 
-sql 에러는 크리티컬해서 ERROR로 찍히게 해두었음.
+**service 정보까지 같이 보낼수도 있음!!
+직접 조회할필요 없다면
+레거시에 구현하면 될듯**
+구현체는 나중에 고민해보자.
 
-#### 상속
-AbstractError는 생성자로 logMessage, loglevel을 받는다.
+---
+## 💎 팩토리 패턴에만 타입에 따라 다른 도메인 객체를 생성하도록
+나머지는 각자 도메인에서 정의한 메서드에서 처리
 
-Q. 왜 이렇게 여러 계층이 필요할까?
-같은 NOT FOUND라 해도 
-statusCode는 404로 같을지언정
-ErrorCode는 OOO_NOT_FOUND 로 다 다름.
--> **내 도메인에 맞게 클래스를 확장해서 사용해야 함!**
+일단 플랫폼은 네이버로 한정하고
+네이버 안에서 product 타입만 구분해서 상속하도록 추상화해본다.
+- url 만으로 스토어 타입을 알 수 있고,
+생성자에 url을 넣음과 동시에 
+SmartstoreProduct의 경우 getter `type`에서 smartstore enum을 던져주도록 함.
+쇼핑윈도우는 enum 1
+- 이것에 따라 생성자에서 다른 도메인을 생성함
 
-AbstractError 가 CError 같은 추상객체.
-logMessage를 생성자에서 받고,
-로그레벨을 정의.
+**Product에 apiUrl 속성 추가**
 
+`scrapeNaverStoreViaAPI` 할 때
+url을 던져줄게 아니라
+IProduct 자체를 던져줘야.
+서비스에선 그 타입을 구분하지 않고
+파서에서 그 속성을 읽어 서로다른 스크래퍼를 생성해 파싱하도록.
+
+parse factory
+instanceof 
+- smartstore product면 factory.create -> smartstore scraper를 만들고
+브랜드스토어면 brandstore scraper
+여기에선 instancecof가 있어도 될거같은데.
+
+type을 프로퍼티로 들고있는게 더 나을듯.
+스스/브랜드/윈도우
+- 근데 브랜드스토어는 거의 똑같다는데
+
+적절한 스크래퍼를 생성
+
+
+🍎 server 코드
+- 아래 productApiUrl를 팩토리패턴 create 함수 안에서
+apiUrl 속성을 넣는 데 저 로직을 써야함.
+- reconstitute에도 동일한 로직으로 도메인 생성해야하므로
+저것만 함수로 따로 빼두기. 아무데나
+```javascript
+getProductDetailInfoViaWeb
+// 하나가 스스, 다른게 쇼핑윈도우
+data = data.product?.A || data.productDetail?.A?.contents;
+
+// getProductDetailInfo는 ApiUrl 자체가 다르고.
+async function getProductDetailInfo(productInfo, sleep = 1500) {
+    const productApiUrl = isSmartStore ? url.startsWith('https://brand.naver.com/') ? `https://brand.naver.com/n/v2/channels/${channelUid}/products/${mallPid}?withWindow=false` : `https://smartstore.naver.com/i/v2/channels/${channelUid}/products/${mallPid}?withWindow=false`
+        : `https://shopping.naver.com/v1/products/${mallPid}`;
+```
+
+🍎 선정산 참조
 ```typescript
-interface Error {
-    name: string;
-    message: string;
-    stack?: string;
-}
-
-export abstract class AbstractError extends Error {
-    override name: string;
-
+export class GlobalScmScrapingAdapter implements IScmScraper {
     constructor(
-        logMessage: string,
-        readonly logLevel: 'warn' | 'error' = 'warn',
-    ) {
-        super(logMessage);
-        this.name = this.constructor.name;
-    }
+        private readonly clsService: ClsService,
+        @Inject(CRAWLING_HTTP_SERVICE)
+        private readonly crawlingHttpService: CrawlingHttpService,
+        @Inject(ADDITIONAL_EMAIL_USECASE)
+        private readonly additionalEmailService: IAdditionalEmailService,
+    ) {}
 
-    abstract getHttpStatusCode(): number;
-    abstract getErrorCode(): string;
-    abstract getErrorMessage(): string;
-}
+    private newScrapInstance(scmType: ScmType): DefaultScraper {
+        if (scmType === ScmType.COUPANG_WING) {
+            return new CoupangWingScraper(
+                this.additionalEmailService,
+                this.crawlingHttpService,
+                this.clsService,
+            );
+        }
 
-export abstract class NotFoundError extends AbstractError {
-    constructor(logMessage: string, logLevel: 'warn' | 'error' = 'warn') {
-        super(logMessage, logLevel);
-    }
-
-    override getHttpStatusCode(): number {
-        return 404;
-    }
-
-    override getErrorCode(): string {
-        return 'NOT_FOUND';
-    }
-
-    override getErrorMessage(): string {
-        return '요청하신 리소스를 찾을 수 없습니다.';
-    }
-}
-
-// 404 확장안하고 싶으면 메서드에 안붙이면 됨.
-export class SampleNotFoundError extends NotFoundError {
-    constructor(logMessage: string, logLevel: 'warn' | 'error' = 'warn') {
-        super(logMessage, logLevel);
-    }
-
-    override getErrorCode(): string {
-        return 'SAMPLE_NOT_FOUND';
-    }
-
-    override getErrorMessage(): string {
-        return '샘플링 데이터를 찾을 수 없습니다.';
-    }
-}
 ```
-
-
-에러 발생시 응답 형태를 바꿀 것.
-- 현재: 클라는 status랑 error_msg만 바라보고 있음.
-비즈니스 에러 코드인 error_msg를 보고 클라에서 직접 alert 메시지를 정의함.
-- 앞으로: 서버에서 `extra_msg` 를 통해 직접 alert 메시지 정의할 것.
-
-```typescript
-interface ErrorResponse {
-    status: 'warn' | 'error'; // 에러 레벨
-    result_code: number; // HTTP 상태 코드
-    error_msg: string; // 클라이언트 에러 코드
-    extra_msg?: string; // 클라이언트 에러 메시지
-}
-```
-
-#### 외부 인터페이스 에러
-1. 데이터베이스
-- internal server error
-
-2. 스크래핑 
-- service-unavailable
-서비스로직에서 요청 결과가 null일 경우 쓰면 될 것.
 
 ---
-#### Logger 전체 설정(common)
+때로는 순서를 거슬러서 해보자.
 
-`PinoLoggerService extends Logger`
--> 이 서비스를 common에 주입하고, 이것을 appmodule에 주입함으로써 동작.
+오히려 상품리스트 조회 부분에서 
+도메인을 분리하고 클래스 상속을 했어야 한다는 걸 깨달을 수도 있다.
 
+## 🍋 정책에 대한 생각
 
-serializers: 
-객체 로깅할 때 사용되는 커스텀 함수를 정의.
-- req: HTTP 요청 객체를 받아 로그에 포함할 정보를 반환
-- res: HTTP 응답 객체를 받아 로그에 포함할 정보를 반환
-```typescript
-pinoHttp: {
-    level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
-    serializers: {
-        req: (req) => ({
-            traceId: req.headers['x-amzn-trace-id'],
-        }),
-        res: (res) => ({
-            statusCode: res.statusCode,
-        }),
-    },
+1. 상품리스트 조회시
+- 화면에서 마크 표시할 때- 관련 도메인 필요할 것
+- 최근꺼랑 가장 앞에꺼라 비교하는 로직이 필요할 것.
+
+2. 경쟁상품 추가시
+- 몇개까지 가능?
+- 추적 비교상품 추가 API
+- 어쨌거나 Tracking Product 도메인에 달려야하는 것 아닌가?
+```
+https://api.itemscout.io/api/v2/tracking/product/catalog
+```
+경쟁상품은 어디에 묶을 것인가
+tracking product? 
+product?
+
+키워드가 상품에 묶이고 
+경쟁상품이 상품에 묶여도 되고.
+
+3. 스토어 타입
+- 테이블 칼럼은 type 0, 1로 구분되겠지만
+소스코드로 녹이는 게 필요할 것.
+- 스마트스토어와 브랜드스토어에 가격을 보여주는 부분이 달라진다고 하면.
+if else 로 분기처리를 해야할 것.
+- 하나의 정책이라도 다르게 가져가는 순간
+if else 가 줄줄이 달리게 됨..
+
+- 우리 서비스는 계속 변경되어야하는데. 크롤링이라.
+이때 수정을 한다고 하면
+그 타입을 알아야 함.
+
+4. Tracking Product 개방폐쇄 원칙
+- 너무 폐쇄되어있다. 
+- 상품만 추적할 것이냐??
+예를들어 상품만 추적하는게 아니라 
+해당 쇼핑몰 자체를 추적한다던가
+방문자, 매출이라던가.
+그러는 순간 새로 파야하게 됨.
+- 💎 Tracking으로 둘듯. 상품 외 다른 타입도 확장될 수 있도록.
+
+5. 기타 
+비즈니스를 표현하는 코드.
+- 판매가 리뷰 평점 유형 -> 이런거 아직 하나도 안넣었음..
+다 조회로직 할 때 맞닥뜨리게 됨.
+```javascript
+GET https://api.itemscout.io/api/v2/tracking/product/355785
+// prev_info ? 나머지는 productDaily 정보인데
 ```
 
-#### TypeOrmLogger
-```typescript
-export class CustomTypeOrmLogger extends AbstractLogger {
-    // local일 때 쿼리를 강조하도록 했음.
-    highlightSql: this.nodeEnv === 'local' ? true : false,
+OOO
+user trackings 라는 aggregate 랑 협력할 수 있어야 하고.
+조회리스트할 때는 협력하는 것들 고민해보면 될것!
 
-// 일반 쿼리는 info, 슬로우 쿼리는 warn.
-case 'info':
-case 'query':
-    if (message.prefix) {
-        this.logger.log(`${message.prefix} ${message.message}`);
-    } else {
-        this.logger.log(message.message);
-    }
-    break;
-
-case 'warn':
-case 'query-slow':
-    if (message.prefix) {
-        this.logger.warn(
-            `${message.prefix} ${message.message}`,
-        );
-    } else {
-        this.logger.warn(message.message);
-    }
-    break;
-```
-
+Product에도 유동적인 비즈니스가 들어갈거라 고민해봐야 함. (협력요소들을)

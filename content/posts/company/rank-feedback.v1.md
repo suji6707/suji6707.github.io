@@ -66,6 +66,27 @@ getKeywordsLimit
 trackable한지 계산후 가능하지 않으면 에러를 던지는 로직이 필요함.
 키워드는 개수 체크해서 가능한 개수까지만?
 
+
+##### 현재 개수
+user_trackings를 체크한다 (tracking products)
+
+💎 tracking product 도메인과 tracking keyword 도메인을 따로 두자.
+물론 keyword.trackings => trackingProduct.keywords로 
+relation을 두어도 좋겠지만
+한편으로는 키워드 분석 프로젝트에서는 trackings가 필요없음.
+즉, user_tracking_keywords (tracking-keyword) 에서만 
+user - product - keywords 관계가 설정되어있으면 될듯.
+그리고 굳이 product에 릴레이션 설정하지 말고 find로 해오면 됨. 
+
+뭐가 있어야 할까?
+
+
+
+
+##### 가능 개수
+
+
+
 ---
 ##### "도메인 관점에서 policy를 넣을까 말까" -> 분리하기로
 어떻게보면 사고방식을 배우는 건데-

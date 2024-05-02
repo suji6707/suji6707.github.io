@@ -5,8 +5,6 @@ draft = true
 +++
 ## 도메인주도 설계
 
-This is **bold** text, and this is *emphasized* text.
-
 생성자. 팩토리. 도메인엔터티.
 리팩토링의 핵심이 뭔가? 
 
