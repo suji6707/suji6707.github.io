@@ -3,7 +3,7 @@ series = ['컴퓨터 밑바닥의 비밀']
 tags = ['컴파일', 'CS']
 title = '컴퓨터 밑바닥의 비밀 - 4장. 트랜지스터에서 CPU로
 date = 2024-05-07T00:20:22+09:00
-draft = true
+# draft = true
 +++
 ## 4장. 트랜지스터에서 CPU로
 
