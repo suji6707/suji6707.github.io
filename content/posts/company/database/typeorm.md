@@ -29,11 +29,3 @@ save 외 upsert 메서드를 따로 만들어주었음(entity-domain 매핑 알�
 
 upsert는 삽입 결과만 반환하며, identifier에서 id를 가져온 후 select를 해서 저장된 객체를 반환해야 한다.
 
-```typescript
-const a: number = 1;
-console.log(a) // 1
-```
-
-`a` is number
-
-
