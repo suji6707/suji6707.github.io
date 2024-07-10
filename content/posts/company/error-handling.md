@@ -4,6 +4,45 @@ date = 2024-02-25T00:20:22+09:00
 draft = true
 +++
 ## 랭킹추적 리팩토링 2. 응답 형태
+axios.create() 호출을 통한 인스턴스 생성 위치
+- 서비스 클래스 내부.
+
+자. 순서.
+scrapeNaverShoppingSearchViaOpenApi
+- naverApiKeyRepository.getMinUsedNaverApiKey 를 mock할거임. 
+
+
+
+#### Axios
+```typescript
+import axios from 'axios';
+import axiosRetry from 'axios-retry';
+
+// 별도의 axios 인스턴스 생성
+const axiosWithRetry = axios.create();
+
+// axios-retry 설정 적용
+axiosRetry(axiosWithRetry, {
+  retries: 3,
+  retryDelay: axiosRetry.exponentialDelay
+});
+
+// 사용 예
+async function retrieve(options: IWebClientOptions): Promise<IWebClientResponse> {
+    this.setOptions(options);
+    if (!this._options.url) throw new Error('URL 값이 없습니다.');
+    
+    const response = await axiosWithRetry(this._options);
+    return response.data;
+}
+```
+1. 이 코드에서 axiosWithRetry 인스턴스는 axios-retry 설정이 적용된 상태이며, retrieve 함수에서 이 인스턴스를 사용하여 요청을 보내게 됩니다. 이 방식을 사용하면 전역 axios 인스턴스에 영향을 주지 않고 재시도 로직을 필요한 요청에만 적용할 수 있습니다.
+
+2. 인터셉터와 재시도 로직의 범위
+인터셉터를 사용할 때, 전역 axios 인스턴스에 적용되는 것이 기본적인 동작입니다. 그러나 별도의 axios 인스턴스를 생성하여 그 인스턴스에만 인터셉터를 적용할 수도 있습니다. 이렇게 하면 다른 요청에는 영향을 주지 않으면서 특정 요청에만 특별한 로직을 적용할 수 있습니다.
+
+3. 요청별로 인터셉터 적용 여부 결정
+각 요청마다 인터셉터의 적용 여부를 결정하려면, 요청을 보낼 때마다 인터셉터를 추가하고 요청이 완료된 후 인터셉터를 제거하는 방식을 사용할 수 있습니다. 이 방법은 다소 번거롭고 비효율적일 수 있으므로, 가능한 한 별도의 인스턴스를 사용하는 방법이 권장됩니다.
 
 ### 인터셉터와 AOP
 ResponseOutput DTO가 인터셉터로 주입된다(constructor)
@@ -42,11 +81,52 @@ mall_pid: mallPid
 
 ---
 ## 에러처리
+### <임시>
+이젠 특정 에러객체의 constructor에 에러메시지만 전달하면 됨
+- 그 에러객체는 특정 ErrorCode(영어코드)와 ErrorMessage(한글 설명) 메서드를 갖도록 구현해야하고
+- logMessage는 그냥 콘솔에만 남는거고
 
+### 🟣 TODO
+
+---
+어떤 에러 상황이 있을까?
+- 상품 url이 이상하다 - invalid
+- 파싱 에러
+    - 특정 필드에 값이 없을때 - InvalidValue
+- DB 에러
+    - 있어야하는데 없을때: not found
+    - 저장 에러
+        - productsave failed error
+        - 이미 각각의 saveProduct에서 해당 에러객체로 throw 했고. 
+
+어떤 에러를 상속할 수 있을까?
+- Internal server: 500
+- InvalidValue: 400
+- notfound 404
+- service unavailable: 503
+- unknown: 500
+
+
+---
+#### tip & refactoring
+```typescript
+try {
+    const { productDailyInfo, productInfo } = await this.scrapingAdapter.scrapeHTML(product, true);
+    if (!productDailyInfo || (needMetadata && !productInfo)) {
+        throw new ScrapeNaverStoreFailedError(`Failed to scrape Naver Store: ${product.url}`);
+    }
+    return { productDailyInfo, productInfo };
+} catch (err) {
+    this.logger.warn(err.message);  // 로깅은 에러 메시지만 기록
+    throw err;  // 이미 ScrapeNaverStoreFailedError가 발생했으므로 그대로 재발생
+}
+```
+
+---
 HttpExceptionFilter -> ExceptionHandleFilter 로 바꿨음.
 - throw 해서 잡지 않으면 http 요청에서 에러가 나고
 그걸 `HttpExceptionFilter`로 처리하고 있었는데
-- 
+
 
 #### '확장해서 쓴다'
 common/domain/error
@@ -78,63 +158,6 @@ ErrorCode는 OOO_NOT_FOUND 로 다 다름.
 AbstractError 가 CError 같은 추상객체.
 logMessage를 생성자에서 받고,
 로그레벨을 정의.
-
-```typescript
-interface Error {
-    name: string;
-    message: string;
-    stack?: string;
-}
-
-export abstract class AbstractError extends Error {
-    override name: string;
-
-    constructor(
-        logMessage: string,
-        readonly logLevel: 'warn' | 'error' = 'warn',
-    ) {
-        super(logMessage);
-        this.name = this.constructor.name;
-    }
-
-    abstract getHttpStatusCode(): number;
-    abstract getErrorCode(): string;
-    abstract getErrorMessage(): string;
-}
-
-export abstract class NotFoundError extends AbstractError {
-    constructor(logMessage: string, logLevel: 'warn' | 'error' = 'warn') {
-        super(logMessage, logLevel);
-    }
-
-    override getHttpStatusCode(): number {
-        return 404;
-    }
-
-    override getErrorCode(): string {
-        return 'NOT_FOUND';
-    }
-
-    override getErrorMessage(): string {
-        return '요청하신 리소스를 찾을 수 없습니다.';
-    }
-}
-
-// 404 확장안하고 싶으면 메서드에 안붙이면 됨.
-export class SampleNotFoundError extends NotFoundError {
-    constructor(logMessage: string, logLevel: 'warn' | 'error' = 'warn') {
-        super(logMessage, logLevel);
-    }
-
-    override getErrorCode(): string {
-        return 'SAMPLE_NOT_FOUND';
-    }
-
-    override getErrorMessage(): string {
-        return '샘플링 데이터를 찾을 수 없습니다.';
-    }
-}
-```
 
 
 에러 발생시 응답 형태를 바꿀 것.

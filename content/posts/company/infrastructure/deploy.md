@@ -6,6 +6,46 @@ draft = true
 
 ## 배포 및 CI/CD
 
+🍋 배포 하면 젤 먼저 .env.development가 먼저 떠올라야 한다.
+그리고 기존 플젝 보면서
+아, build.yml이 필요하구나
+레거시 서버에는 MSI-API 설정이 필요하구나 등.
+
+
+
+
+### ⛑️ Too many connection 원인?
+conn limit은 5로 해도 문제없음. 느리긴 한데 .. 반환이 되고있다는 뜻임.
+
+궁금: 
+- 실서버 max connection은 얼마?
+조치:
+- app에서 커넥션 갯수 제한(DB_CONN_LIMIT)
+    - max connection이 100개면 app A, B, C 앱 단에서의 커넥션 수를 다 합한게 100개 넘으면 안된다는 말임.
+- db엔진에서 sleep 상태의 세션 종료 시간 조정(wait_connection)
+    - 💎 conf.d에서 해당 옵션 찾아보기! 이걸 검색해낼 수 있어야함..
+
+#### 💎 변경값  
+- 1번은 .env 설정 변경했구요(어제처럼 컨테이너에 직접 주입) = 5
+- 2번은 rds 파라미터 그룹 변경 입니다 = wait_timeout 60(s)
+sleep 된 세션이 8시간동안 사라지지 않아서 1분으로 변경
+    - 설정방법: RDS > 해당 DB > DB instance parameter group
+    - 현재 dev는 micro라서 max_conn 60개고 
+    - prd는 R3.xlarge: 2540 -> 수백개는 거뜬하고. 앱단의 limit은 32개.
+        - 근데 이것도 100명이 한번에 요청하기에는 빡세보임. 빨리 반환해주지 않으면..
+#### 🍎 랭킹추적 배포 prd 적정수치에 대한 생각
+- dev 10, prd 32
+
+클라이언트 안켜지면
+- conf.d를 수정하고 재시작하거나
+- mysql restart 후 접속해서 SET 명령어로 설정한다.
+
+
+---
+#### 🍋 TODO
+
+---
+
 ### buildspec.yml
 **소스코드를 가지고 실행하고, PUSH까지 하게 됨(ECR 배포)**
 
