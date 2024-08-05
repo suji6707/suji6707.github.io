@@ -34,6 +34,25 @@ Hex에서 4 byte는 앞의 8자리.
 
 ---
 ### Recipe Project
+
+### 단계
+1. Logstash를 사용하여 MongoDB와 Elasticsearch 간에 데이터를 동기화
+- Logstash에는 MongoDB 입력 플러그인과 Elasticsearch 출력 플러그인.
+2. Elasticsearch 인덱스 생성, Mongo Document 필트와 인덱스 필드간 매핑 정의. 데이터 타입.
+3. 검색 쿼리 작성: Elasticsearch 쿼리 DSL을 사용하여 검색 쿼리를 작성
+4. Elasticsearch로부터 검색 결과를 받아 응용 프로그램에 표시
+
+로그스태시 플러그인
+- finds and pull the number of documents specified in batch_size, save it's progress in an sqlite database who's location is specified by placeholder_db_dir and placeholder_db_name and repeat
+
+
+- Docker Compose는 지정된 서비스(여기서는 elasticsearch, kibana, mongo)에 대한 이미지가 로컬 시스템에 없을 경우 Docker Hub에서 자동으로 다운로드
+- network: 세 가지 서비스가 somenetwork라는 동일한 네트워크 내에서 서로 통신
+- depends_on 설정을 사용하여 kibana 서비스가 elasticsearch 서비스에 의존하도록
+- docker-compose up -d : 백그라운드 모드 (해당 경로로 가서)
+
+
+---
 ### 🍊 전반적인 기능
 홈, 검색, My페이지, 설정
 - 홈: 추천 기반. 클릭시 원본 영상과 레시피 요약이 뜸
@@ -122,12 +141,131 @@ B. GET /search - query: query
 
 
 
+---
+docker compose 돌리면 다시 살릴 수 있게
+db_path. volume 설정도.
+disk 설정 잘 하면 ㅇㅇ.
+```yaml
+version: '2.2'
 
-```typescript
-const a: number = 1;
-console.log(a) // 1
+networks:
+  somenetwork:
+
+services:
+  elasticsearch:
+    container_name: elasticsearch
+    image: elasticsearch:7.17.19
+    environment:
+      - discovery.type=single-node
+    networks:
+      - somenetwork
+    ports:
+      - 9200:9200
+      - 9300:9300
+    stdin_open: true
+    tty: true
+
+  kibana:
+    container_name: kibana
+    image: kibana:7.17.19
+    networks:
+      - somenetwork
+    ports:
+      - 5601:5601
+    stdin_open: true
+    tty: true
+    depends_on:
+      - elasticsearch
+
+  mongo:
+    container_name: mongo
+    restart: always
+    image: mongo
+    networks: 
+      - somenetwork
+    ports:
+      - 27017:27017
+    tty: true
+    stdin_open: true
+    volumes:
+      - /Users/heojisu/db/recipe/mongodb/:/var/lib/mongodb
 ```
 
-`a` is number
+---
+SQLException: path to '/opt/homebrew/opt/logstash/config/logs
 
+MongoDB 입력 플러그인이 내부적으로 사용하는 SQLite 데이터베이스 파일에 연결을 시도하던 중 문제가 발생한 것.
+경로 및 파일 권한: placeholder_db_dir에 지정된 경로에 실제로 접근할 수 있는지 
+placeholder_db_name으로 지정된 SQLite 데이터베이스 파일이 올바르게 생성되지 않음
+
+```shell
+input {
+    mongodb {
+        "uri" => "mongodb://liquid.nvidia.com:27017/"
+        "placeholder_db_dir" => "/opt/logstash-mongodb/"
+        "placeholder_db_name" => "logstash_sqlite.db"
+        "collection" => "global_queue_list"
+        "batch_size" => 5000
+    }
+}
+
+filter {
+
+}
+output {
+        stdout {
+                codec => rubydebug
+        }
+        elasticsearch {
+                "action" => "index"
+                "index" => "mongo_log_data"
+                "hosts" => ["localhost:9200"]
+        }
+}
+
+```
+---
+.(root)
+./logstash/
+./logstash/config/
+./logstash/pipeline/
+Dockerfile
+
+1. 로그스태시 config 설정
+* create our project with logstash configuration and pipeline job configuration.
+your-pipeline-name.conf
+./logstash/config/logstash.yml
+pipeline.yml
+
+2. 도커파일 설정
+: config 파일 컨테이너로 복사
+
+3. 도커파일 Build and Run
+
+- 이제 로컬에서 해당 경로의 config를 수정하고
+Dockerfile을 빌드/런 하면 됨.
+
+---
+🔮 유명 채널들을 다 긁어서 데이터베이스에 넣는게 나을수도.
+몽고DB는 id만 쓸거임. 저장용이지 어차피 검색은 엘라스틱 서치로 할거임.
+
+비슷한 요리들끼리 클러스터링도 할 수 있고.
+
+채널 안에서 - title 보고 요리여부 구분하거나
+전체 긁어서
+or 재생목록
+
+
+{필드}
+요리명: keyword(=) ? text(역인덱스) ? >> 띄워쓰기같은건 저장할 때 다 붙이거나 해서 keyword로 할 수 있는데
+- 일단 멀티필드로 해놓고 하다가 바꾸는게.
+- 나머지 필드는 text
+동영상 제목: text
+url: keyword
+방법/프로세스:
+재료:
+
+bm25
+idf는 역수 -> 그 문서(doc)에서만이 아니라 전체 문서에서.
+단 하나의 문서에서만 나타났으면 특별한거니까.
 

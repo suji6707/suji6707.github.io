@@ -30,14 +30,6 @@ where semester = 'Spring' and year = 2008;
 4.2
 ```sql
 -- a.
--- 명시적으로 조건 지정. instructor.dept_name = course.dept_name을 지정하지 않는 한편
-select i.*, c.*
-from instructor i
-join teaches t on i.ID = t.ID
-join section s on t.course_id = s.course_id and t.sec_id = s.sec_id and t.semester = s.semester and t.year = s.year
-join course c on s.course_id = c.course_id
-where t.semester = 'Spring' and t.year = 2008;
-
 -- all instructors, each ID and number of sections taught
 -- A에는 있는데 B에는 없고, 그것을 count 0으로 치려면
 -- A LEFT JOIN B
@@ -52,11 +44,11 @@ from instructor left join teaches on instructor.ID = teaches.ID;
 
 
 -- b.
--- count(ID)는 ID 열이 NULL이 아닌 행의 수를 세고, COUNT(*)는 행의 총 수를 셉니다. 여기서는 teaches 테이블의 ID 열이 NULL이 아니므로 두 가지 방식의 결과가 같습니다.
+-- count(ID)는 ID 열이 NULL이 아닌 행의 수를 세고, COUNT(*)는 행의 총 수를 셉니다. 여기서는 teaches 테이블의 ID 열이 NULL이 아니므로 두 가지 방식의 결과가 같습니다.(PK라서 *와 똑같음)
 SELECT ID, (
 	SELECT COUNT(*) 
 	FROM teaches T
-	WHERE T.id = I.id
+	WHERE T.ID = I.ID
 ) AS Number_of_sections
 FROM instructor I;
 
@@ -115,6 +107,75 @@ where not exists (
 );
 ```
 
+4.5
+
+```sql
+
+
+```
+
+4.6
+가중평균
+```sql
+-- credit_sum이 0이면 0으로 나누지 않도록 NULL로 처리
+select ID, (credit_points_sum / IF(credit_sum = 0, null, credit_sum)) as GPA from (
+  select 
+    ID, 
+    -- grade = NULL이면 points도 NULL인데 0으로 처리
+    sum(credits * IFNULL(points, 0)) as credit_points_sum,
+    sum(credits) as credit_sum
+  from takes t
+  -- grade = NULL이어도 join 결과에 있어야 함
+  left join grade_points gp on t.grade = gp.grade
+  join course c on t.course_id = c.course_id
+  group by ID
+  -- takes 수강한적 없는 학생은 credit * point, credit SUM 모두 NULL로 둔다
+  union
+  select ID, null, null
+  from student
+  where ID not in (
+    select ID from takes
+  )) as tmp;
+
+
+-- 참고
+IF(condition, true_result, false_result)
+IFNULL(Column명, "Null일 경우 대체 값")
+
+SELECT student_id,
+       IF(grade IS NULL, 0, grade) AS adjusted_grade
+FROM student_grades;
+
+```
+
+4.8
+제약조건을 약하게 걸어보면 두 명의 교수 케이스가 나오긴 하는데
+(동일한 학기에 동일한 강의실에서 두 개 이상의 수업이 열리는) -> year 조건을 안걸었음.
+이미 duplicate key가 잘 걸려있어서 (courseId, SecId, Spring, 2008) 답안과 같은 케이스는 안나옴.
+
+```sql
+-- a.
+select i.ID, name, s.semester, building, count(distinct concat(building, room_number)) as same_place_cnt
+from instructor i
+left join teaches t on i.ID = t.ID
+join section s on 
+	t.course_id = s.course_id and
+	t.sec_id = s.sec_id and
+	t.semester = s.semester and
+	t.year = s.year
+group by i.ID, name, semester, building
+having same_place_cnt > 1;
+
+-- 엉터리 케이스를 만들었음..
+-- 아래는 빌딩,룸넘버 같은거 두개 해도 sec_id가 달라서 안걸릴수밖에
+select * 
+from instructor i
+left join teaches t on i.ID = t.ID
+join section s on t.course_id = s.course_id
+where i.name = 'Heo';
+```
+
+4.9
 
 ```sql
 
@@ -123,3 +184,31 @@ where not exists (
 ```sql
 
 ```
+
+```sql
+
+```
+---
+삼진관계(trinary relationship)는 세 개의 엔티티 간의 관계를 나타내는 것을 의미합니다. 여기서 "exam_marks" 관계는 "student", "exam", "section" 세 개의 엔티티 간의 관계를 나타내고 있습니다. 즉, 한 학생이 특정 시험을 특정 섹션에서 본다는 것을 의미합니다.
+
+해설에서 말하는 대안은 "exam_marks" 관계를 이진관계(binary relationship)로 단순화하는 것입니다. 이 경우, "exam_marks" 관계는 "student"와 "exam" 간의 관계로만 모델링되고, "section"은 별도의 관계로 처리됩니다. 이를 위해 "exam"을 약한 엔티티(weak entity)로 모델링하고, "section"과의 관계를 통해 "exam"을 식별할 수 있도록 합니다.
+
+예시를 들어 설명하겠습니다:
+
+### 현재 모델 (삼진관계)
+- **Entities**:
+  - student(student_id, name, dept_name, tot_cred)
+  - exam(exam_id, name, place, time)
+  - section(sec_id, semester, year)
+- **Relationship**:
+  - exam_marks(student_id, exam_id, sec_id, marks)
+
+### 대안 모델 (이진관계)
+- **Entities**:
+  - student(student_id, name, dept_name, tot_cred)
+  - section(sec_id, semester, year)
+  - exam(exam_id, name, place, time, sec_id)  // exam이 약한 엔티티로 section에 종속됨
+- **Relationship**:
+  - exam_marks(student_id, exam_id, marks)
+
+이 대안 모델에서는 "exam"이 "section"에 종속된 약한 엔티티로 모델링되며, "exam_marks" 관계는 "student"와 "exam" 간의 이진 관계로 단순화됩니다. 이를 통해 데이터 중복을 줄이고, 각 시험이 어떤 섹션에서 이루어졌는지 명확히 할 수 있습니다.

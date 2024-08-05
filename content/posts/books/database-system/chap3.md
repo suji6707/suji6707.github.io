@@ -150,7 +150,7 @@ from student s
 where not exists (
 	select 1
 	from takes t
-	where t.ID = s.ID
+	where s.ID = t.ID // 🟡 위의 s와 연결되어있어야 가능
 );
 
 -- find ID and g_point avg of each student
@@ -166,12 +166,132 @@ where not exists (
 	select 1 from takes t
 	where t.ID = s.ID
 );	
+```
+3.3
+```sql
+-- b.
+-- 아래 두 쿼리는 같은 결과이나 두번째가 나음
+select *
+from course c
+where not exists (
+	select 1
+	from section s
+	where c.course_id = s.course_id
+);
 
--- 3.d
+select * from course
+where course_id not in (
+	select course_id from section
+);
 
+-- 삭제 버전
+delete from course
+where course_id not in (
+	select course_id from section
+);
+
+-- c.
+insert into instructor (name, dept_name, salary)
+select name, dept_name, 10000
+from student
+where tot_cred > 129;
 ```
 
+3.4
 ```sql
+-- a번. 사실 차량정보는 필요없음. participated에서 바로 owns와 연관시키면 됨
+select count(distinct(person.driver_id))
+from accident, participated, person, owns
+-- 사고가 난 차량정보
+where accident.report_number = participated.report_number
+-- 사고 차량의 실제 소유자
+and owns.license_plate = participated.license_plate
+-- 그 소유자의 person 정보
+and owns.driver_id = person.driver_id
+and year = '2017';
+
+-- 3.5
+select grade, count(ID)
+from (
+	select ID,
+		case 
+			when score < 40 then 'F'
+			when score < 60 then 'C'
+			when score < 80 then 'B'
+			else 'A'
+		end as grade
+	from marks
+) as tmp
+group by grade;
+
+-- 3.8
+-- a.
+select d.ID
+from account a
+join depositor d on a.account_number = d.account_number
+-- 일단 depositor, borrower가 있는지는 신경쓰지 않고 - 그다음 left join
+🟡left join borrower b on d.ID = b.ID
+🟡where b.ID is null; 
+
+-- b.
+select ID
+from customer c
+where (c.customer_street, c.customer_city) = (
+	select customer_street, customer_city
+	from customer
+	where ID = '12345'
+);
+
+-- 🟡 조인이 서브쿼리보다 빠를 수 있음. 자기자신을 join. 타겟은 F
+select F.ID
+from customer F, customer S
+where F.customer_street = S.customer_street
+	and F.customer_city = S.customer_city
+	and S.ID = '12345';
+
+
+-- c. 🟡 <>는 대소비교가 아니라 '같지 않음'임.
+select ID
+from works
+where company_name <> 'First Bank Corp';
+
+-- f.
+with count_by_company as (
+	select company_name, count(ID) as emp_cnt
+	from works
+	group by company_name
+)
+select company_name
+from count_by_company
+where emp_cnt = (
+	select max(emp_cnt)
+	from count_by_company
+);
+
+-- g.
+-- where는 select 전에, hanving은 select 후에(group by 등 agg 적용후 - 다 가져와서 row가 결정된 후에 )
+select company_name, avg(salary) as avg_salary
+from works
+group by company_name
+having avg_salary > (
+	select avg(salray)
+	from works
+	where works.company_name = 'First Bank'
+);
+
+-- 3.10.
+-- b.
+update works
+set salary = (
+	case
+		when salary * 1.1 < 100000 then salary * 1.1
+		else salary * 1.03
+	end
+)
+where works.ID in (
+	select ID 
+	from manages
+) and works.company_name = 'First Bank';
 
 ```
 

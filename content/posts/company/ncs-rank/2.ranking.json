@@ -1,0 +1,387 @@
+{
+	"info": {
+		"_postman_id": "b4e638fc-2da2-42dc-a129-94fd1a1fbf1b",
+		"name": "naver commerce solution",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "2525877"
+	},
+	"item": [
+		{
+			"name": "셀러 인증 토큰 발급 요청",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "client_id",
+							"value": "67ItSAFR7WphdJW6NEhX5h",
+							"type": "text"
+						},
+						{
+							"key": "timestamp",
+							"value": "1716445591223",
+							"type": "text"
+						},
+						{
+							"key": "grant_type",
+							"value": "client_credentials",
+							"type": "text"
+						},
+						{
+							"key": "client_secret_sign",
+							"value": "JDJhJDA0JGE1VFguWFZKbTgzSUpnSkIvVU1wL09sOHEycHZkRU91UTh1REppR2d2RTFaZFVFU2dheGpp",
+							"type": "text"
+						},
+						{
+							"key": "type",
+							"value": "SELLER",
+							"type": "text"
+						},
+						{
+							"key": "account_id",
+							"value": "ncp_2sSEzSoR00nMs8LEImwck",
+							"type": "text"
+						},
+						{
+							"key": "",
+							"value": "",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "",
+							"value": "",
+							"type": "text",
+							"disabled": true
+						}
+					]
+				},
+				"url": {
+					"raw": "https://api.commerce.naver.com/external/v1/oauth2/token",
+					"protocol": "https",
+					"host": [
+						"api",
+						"commerce",
+						"naver",
+						"com"
+					],
+					"path": [
+						"external",
+						"v1",
+						"oauth2",
+						"token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "자체 인증 토큰 발급 요청",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "client_id",
+							"value": "67ItSAFR7WphdJW6NEhX5h",
+							"type": "text"
+						},
+						{
+							"key": "timestamp",
+							"value": "1716446627305",
+							"type": "text"
+						},
+						{
+							"key": "grant_type",
+							"value": "client_credentials",
+							"type": "text"
+						},
+						{
+							"key": "client_secret_sign",
+							"value": "JDJhJDA0JGE1VFguWFZKbTgzSUpnSkIvVU1wL09sSE5kakJ1WDY2YklEYUpNelZkODREVy9GdGtzMkRt",
+							"type": "text"
+						},
+						{
+							"key": "type",
+							"value": "SELF",
+							"type": "text"
+						},
+						{
+							"key": "",
+							"value": "",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "",
+							"value": "",
+							"type": "text",
+							"disabled": true
+						}
+					]
+				},
+				"url": {
+					"raw": "https://api.commerce.naver.com/external/v1/oauth2/token",
+					"protocol": "https",
+					"host": [
+						"api",
+						"commerce",
+						"naver",
+						"com"
+					],
+					"path": [
+						"external",
+						"v1",
+						"oauth2",
+						"token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "검색 결과 저장 (SELLER)",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer U88AUdePHK0S3byynB20w",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://api.commerce.naver.com/external/v1/search/resource/url",
+					"protocol": "https",
+					"host": [
+						"api",
+						"commerce",
+						"naver",
+						"com"
+					],
+					"path": [
+						"external",
+						"v1",
+						"search",
+						"resource",
+						"url"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "상품 목록 조회 (SELLER)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer U88AUdePHK0S3byynB20w",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"page\": 1,\n    \"size\": 500\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://api.commerce.naver.com/external/v1/products/search",
+					"protocol": "https",
+					"host": [
+						"api",
+						"commerce",
+						"naver",
+						"com"
+					],
+					"path": [
+						"external",
+						"v1",
+						"products",
+						"search"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "건별 정산 내역 조회 (SELLER)",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer 4qGzIHACX8D1M0sRcxpC3T",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://api.commerce.naver.com/external/v1/pay-settle/settle/case?searchDate=2024-05-18&periodType=SETTLE_CASEBYCASE_PAY_DATE&pageNumber=1&pageSize=1000",
+					"protocol": "https",
+					"host": [
+						"api",
+						"commerce",
+						"naver",
+						"com"
+					],
+					"path": [
+						"external",
+						"v1",
+						"pay-settle",
+						"settle",
+						"case"
+					],
+					"query": [
+						{
+							"key": "searchDate",
+							"value": "2024-05-18"
+						},
+						{
+							"key": "periodType",
+							"value": "SETTLE_CASEBYCASE_PAY_DATE"
+						},
+						{
+							"key": "pageNumber",
+							"value": "1"
+						},
+						{
+							"key": "pageSize",
+							"value": "1000"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "일별 정산 내역 조회 (SELLER) - 안쓸듯",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer 4qGzIHACX8D1M0sRcxpC3T",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://api.commerce.naver.com/external/v1/pay-settle/settle/daily?startDate=2024-05-19&endDate=2024-05-23&pageNumber=1&pageSize=1000",
+					"protocol": "https",
+					"host": [
+						"api",
+						"commerce",
+						"naver",
+						"com"
+					],
+					"path": [
+						"external",
+						"v1",
+						"pay-settle",
+						"settle",
+						"daily"
+					],
+					"query": [
+						{
+							"key": "startDate",
+							"value": "2024-05-19"
+						},
+						{
+							"key": "endDate",
+							"value": "2024-05-23"
+						},
+						{
+							"key": "pageNumber",
+							"value": "1"
+						},
+						{
+							"key": "pageSize",
+							"value": "1000"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "상품 주문 상세 내역 조회 (SELLER)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer 4qGzIHACX8D1M0sRcxpC3T",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"productOrderIds\": [2024051868144711]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://api.commerce.naver.com/external/v1/pay-order/seller/product-orders/query",
+					"protocol": "https",
+					"host": [
+						"api",
+						"commerce",
+						"naver",
+						"com"
+					],
+					"path": [
+						"external",
+						"v1",
+						"pay-order",
+						"seller",
+						"product-orders",
+						"query"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "사용 상태 조회 (SELF)",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer 2fKj1AbBkbXMlsL9ICZTF9",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://api.commerce.naver.com/external/v1/commerce-solutions/subscriptions/ncp_2sSEzSoR00nMs8LEImwck",
+					"protocol": "https",
+					"host": [
+						"api",
+						"commerce",
+						"naver",
+						"com"
+					],
+					"path": [
+						"external",
+						"v1",
+						"commerce-solutions",
+						"subscriptions",
+						"ncp_2sSEzSoR00nMs8LEImwck"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

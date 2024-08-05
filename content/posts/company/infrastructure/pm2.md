@@ -35,3 +35,17 @@ createApplicationContext 별거 없음.
     ]
 }
 ```
+
+---
+## 로그 적재하기
+
+
+`scp -i ~/auth/ncs_rank.pem -r ubuntu@ncs-rank-query-01.itemscout.io:/home/ubuntu/ncs_resource/search-data/year=2024/month=07/day=19 \
+/Users/heojisu/coding/itemscout/ncs/ncs_resource/search-data/year=2024/month=07/`
+
+
+
+
+---
+### S3 백업
+

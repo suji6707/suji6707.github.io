@@ -272,3 +272,138 @@ CPU 코어 Hz
 리액트:
 컴포넌트 정의할 때 export (default) function
 컴포넌트 안에서 메서드 정의는 const 
+
+
+---
+## Chess
+🟡🟡🟡🟡🟡 체스 🟡🟡🟡🟡🟡🟡  
+
+체스 기물 이동가능성을 평가
+- 상대 기물: 새로운 좌표에 있는 기물을 newPiece로 선언. newX, newY에 위치한 piece를 newPiece라는 변수에 할당.
+- 기물 확인: 해당 좌표에 기물이 존재하고
+- 현재 움직이려는 기물의 색상과 같다면
+그곳으로 갈 수 없으므로 Continue - 건너뜀. 
+
+안전한 칸인가?
+- 상대방 기물에 의해 위협받지 않는 칸?
+- En Passant: 상대방의 pawn이 두 칸 전진할 때 그 pawn을 지나치면서 캡처할 수 있는 기회
+- Castling: 킹과 룩이 동시에 움직이는 특별한 움직임. 특정 조건(왕과 룩이 한 번도 움직이지 않았고, 둘 사이에 기물이 없으며, 왕이 체크 상태가 아니어야 함)이 충족될 때 가능
+
+마지막으로, 플레이어별로 가능한 모든 안전한 이동 칸을 포함하는 맵을 반환
+
+---
+#### isInCheck : 내가 말을 옮겼을 때 가상의 board를 만들어 모든 상대방 말에 대한 가능한 움직임을 조사함.
+
+```
+Initially:
+    define empty map for player available suqares
+
+Foreach square in chess board:
+    if square doesn't have piece OR piece on square has different color than current player: CONTINUE
+
+    define safe squares list = Coord[][]  
+
+    // 각 좌표마다
+    Foreach direction of piece
+        declare newX and newY coords
+        if coords are out of range: CONTINUE
+
+        declare piece on new coords as newPiece
+        if newPiece is not null && newPiece.color === piece.color: CONTINUE
+
+        if (position is SAFE after move) THEN update piece safe squares list
+
+    Checking if there is possibility for en passant and castling
+
+    If piece have safe squares: append it to player map
+
+RETURN Map of player safe squares
+``` 
+
+#### To determine if one side is in check>
+-> 상대방의 모든 가능한 움직임을 본다.
+```
+Loop through each piece of opposite color
+
+    Loop through each of its attacking square
+        if one of the attacking square contains king with the opposite color, (공격가능한 스퀘어가 나의 킹을 포함하면)
+        THEN position is in check
+
+If no such a square exist, ther is no check
+
+Just one exception that pawn are attacking in diagonal direction
+
+```
+
+---
+이동 후 안전한 포지션인지 어떻게 아는가?
+1. simulate how position would look like after move is played
+2. if player who just moved piece, creates position such that he is in check, position is then unsafe
+- 이동한 상태를 가상으로 만듦. 실제 보드에 변경을 적용하지 않고.
+체크는 상대방 기물이 내 왕을 공격할 수 있는 위치에 있을 때 발생. 
+> 안전: 왕이 체크상태에 있지 않아야 함.
+3. Restore position as it was before move
+4. Return safety of the simulate position
+
+아하.. 모든걸 if else로 하기에는 힘드니.
+각 기물이 이동했을 때 새로운 board를 생성해서 판단하는구나.
+
+⭐️ King이 check인지 판단하는 법:
+- 상대 기물 중 어떤 하나라도 king을 공격할 수 있는지 본다. 
+
+---
+🔵 두 구현의 차이점.
+- 드래거블은 말의 위치를 사전에 정해놓았고 + 사용자 커서가 이동하는 위치만을 canMove로 고려했지만
+- 실제 게임은 처음 모든 말 셋팅이 전부 되어있고 + 나의 모든 말에 대한 움직임과 그에따른 상대방의 공격 경로를 모두 추적한다. 
+즉 (16개 * 6개 방향) * (16개 * 6개 방향)
+
+- 커서만 보느냐, 갈 수 있는 모든 경로와 상대방의 반응까지 고려하느냐의 차이임.
+
+🔴 게임에선 말이 이동했을 때 어떻게 상태를 변화시킬 것인가?
+드래거블에선 squares = [] 배열에 8 * 8 돌면서 [x, y] location 정보를 가진 Piece 이미지를 넣었음.
+'이미지'가 이동한다. grid에서. 
+
+또한 
+piece의 구분은 오직 'K', 'k', null 이런 FENChar로만 하여
+로직을 구성하므로 부담이 적은듯.
+
+
+Q. 이건 처음에 배열에 박아넣는데
+어떻게 location을 변경하지??
+
+
+---
+
+1. 전체적인 그림
+2. move (place piece 수정)
+3. king check & game over 추가
+
+
+- flip board 라고 해야하나? 드롭을 하는순간 turn을 바꿔줘야하고.
+(friend mode는 뭐지?)
+- 드래그해서 옮기는 것까지.
+
+라이브러리가 해주던건 
+start에서 dest의 좌표를 추적할 뿐.
+- 사실 클릭시 prevX, prevY -> newX, newY로 위치만 바꿔주면 됨.
+
+🔴 급한 FIX
+- 상대방 턴: 
+move 직후 this._playerColor 바뀌었고
+💎findSafeSquares 로 갈수있는곳 표시할 때 this._playerColor가 아닌 말들은 제외하기 때문에 ㅇㅇ. 
+- select할 때 상대편이면 return false해서 선택 못하게 하는거고.
+
+- black 후 white에서
+findSafeSquares 가 컴포넌트로 안이어짐.
+
+순서
+1. move
+2. playerColor B -> W
+3. findSafeSquares : 
+
+함수형은 내부 상태를 갖지 말아야.
+데이터를 받아서 데이터를 반환
+객체지향과 반대.
+
+
+/home/jisu/coding/chess-game/out
