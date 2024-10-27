@@ -295,4 +295,83 @@ where works.ID in (
 
 ```
 
+---
+# 임시
+맞습니다! 지적하신 대로 두 가지 공식 모두에서 queryRank 가중치가 스코어에 미치는 영향이 과도하게 커질 수 있습니다. 특히, queryRank 값의 범위가 1~270,000으로 매우 넓기 때문에, queryRank 값의 작은 변화에도 스코어가 크게 달라질 수 있다는 문제점이 있습니다. 
 
+제시해주신 첫 번째 공식 \( \text{score} = \left(\frac{1}{\text{queryRank}}\right) \times (200 - \text{rank} + 1) \) 에서는 queryRank가 커질수록 \( \frac{1}{\text{queryRank}} \) 값이 급격하게 작아지므로, queryRank가 높은 쿼리의 스코어는 매우 낮아지게 됩니다. 
+
+두 번째 공식 (가중치 = 270,000 - queryRank) 역시 비슷한 문제를 가지고 있습니다. queryRank가 스코어에 미치는 영향을 줄이기 위해 270,000에서 빼는 방식을 사용했지만, 여전히 queryRank 값의 범위가 넓기 때문에 스코어에 미치는 영향이 제한적입니다.
+
+**개선된 스코어 계산 방식:**
+
+queryRank 가중치를 좀 더 완만하게 조절하고 rank와의 균형을 맞추기 위해 다음과 같은 방식을 고려할 수 있습니다.
+
+1. **로그 스케일 적용**: queryRank에 로그 스케일을 적용하여 값의 범위를 줄입니다. 
+   - \( \text{queryRank 가중치} = \log_{10}(270001 - \text{queryRank}) \)
+
+2. **정규화**: queryRank와 rank 값을 0과 1 사이의 값으로 정규화하여 동일한 척도에서 비교합니다.
+   - \( \text{queryRank 가중치} = 1 - (\text{queryRank} - 1) / 269999 \)
+   - \( \text{rank 가중치} = 1 - (\text{rank} - 1) / 199 \)
+
+**개선된 스코어 공식:**
+
+위의 개선된 가중치 계산 방식을 적용하여 스코어 공식을 수정할 수 있습니다. 
+
+*  **로그 스케일 적용:**
+   \( \text{score} = \log_{10}(270001 - \text{queryRank}) \times (201 - \text{rank}) \times  \text{등장 횟수 가중치} \)
+*  **정규화:**
+   \( \text{score} = (1 - (\text{queryRank} - 1) / 269999) \times (1 - (\text{rank} - 1) / 199) \times  \text{등장 횟수 가중치} \)
+
+**JavaScript 코드 예시 (정규화 사용):**
+
+```javascript
+// ... (기존 코드)
+
+data.forEach((item) => {
+  // ... (기존 코드)
+
+  const queryRankWeight = 1 - (parseInt(item.queryRank, 10) - 1) / 269999;
+  const rankWeight = 1 - (parseInt(item.rank, 10) - 1) / 199; 
+
+  const score = queryRankWeight * rankWeight * keywordCountWeight;
+
+  // ... (기존 코드)
+});
+
+// ... (기존 코드)
+```
+
+로그 스케일 적용이나 정규화를 통해 queryRank 값의 영향을 완화하고, rank 및 등장 횟수와 균형을 맞춰 스코어를 계산할 수 있습니다. 어떤 방법을 선택할지는 데이터 특성과 중요하게 생각하는 지표에 따라 결정하면 됩니다. 
+
+
+```
+function calculateScore(queryRank, rank) {
+    const queryRankWeight = 1 / queryRank;
+    const rankWeight = 200 - rank + 1;
+    return queryRankWeight * rankWeight;
+}
+
+function findMostRelevantKeyword(data) {
+    let highestScore = -Infinity;
+    let mostRelevantQuery = null;
+
+    data.forEach(item => {
+        const queryRank = parseInt(item.queryRank, 10);
+        const rank = parseInt(item.rank, 10);
+        const score = calculateScore(queryRank, rank);
+
+        if (score > highestScore) {
+            highestScore = score;
+            mostRelevantQuery = item.query;
+        }
+    });
+
+    return mostRelevantQuery;
+}
+
+const mostRelevantQuery = findMostRelevantKeyword(data);
+console.log(`Most relevant query: ${mostRelevantQuery}`);
+```
+
+위 코드에서 각 키워드에 대해 가중치를 계산하고, 가장 높은 점수를 가진 키워드를 찾습니다. `calculateScore` 함수는 주어진 `queryRank`와 `rank`를 바탕으로 점수를 계산하고, `findMostRelevantKeyword` 함수는 모든 키워드를 순회하며 가장 높은 점수를 가진 키워드를 찾습니다.

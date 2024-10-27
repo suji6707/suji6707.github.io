@@ -1,6 +1,6 @@
 +++
 categories = ['Javascript']
-series = ['TypeScript']
+series = ['Javascript']
 date = 2024-07-30T22:50:44+09:00
 draft = true
 +++

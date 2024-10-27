@@ -12,6 +12,118 @@ draft = true
 직접 카드를 옮겨가면서 + 수도코드를 이해한다.
 - 지금은 일단 개념이 우선이라서. B트리 확장부터?
 
+
+### 🍎 핵심
+- index는 순서대로 정렬되어있다. non-leaf는 sparse index를 형성한다.
+- pointer는 non-leaf 경우 pointers to children, leaf 경우 최종 레코드를 가리킨다. 
+	- non-leaf를 타고타고 결국 leaf 노드로 가야한다.
+- 한 노드는 보통 한 블록 사이즈(4KB)이고, 한 블록에는 100개정도 index entry가 들어가므로
+	- 1M개의 search key가 있을 때 
+	- log50(1M) = 4 노드만 타고 들어가면 root->leaf의 값을 찾을 수 있다.
+	- 바이너리 트리일 때(20 노드 - disk I/O 20ms)보다 훨씬 빠르다. 
+- 한 노드가 가질 수 있는 포인터 수가 n개라 할 때,
+	- 기본적으로 child node는 최소 n/2개 키값을 가져야하며
+	그 개수는 n/2 제곱씩 늘어난다. 트리 높이는 log(n/2)M 
+	- leaf는 n/2 ~ n-1개까지의 값만 가질 수 있는데, n번째 pointer는 next leaf node를 가리켜야하기 때문이다. (리프노드는 반드시 다음 리프노드와 연결되어있어야 한다)
+
+
+#### 일반화
+```c
+// B+ 트리
+// key n-1개, pointer n개
+struct Node {
+	keys: string[]
+	pointers:Node[]
+	len: number
+}
+
+C: Node = root
+C: Node = Pi+1 = C.pointers[i+1]
+
+// binary 트리
+// key 1개, pointer 2개
+TreeNode {
+	key: string
+	left: TreeNode*
+	right: TreeNode*
+}
+// child node로 내려갈 때
+C = C.left 
+
+```
+
+
+```cpp
+#include <iostream>
+#include <vector>
+
+// B-트리 노드 구조체 정의
+struct BTreeNode {
+    std::vector<int> keys; // 키 값들
+    std::vector<BTreeNode*> children; // 자식 노드들
+    bool isLeaf; // 리프 노드 여부
+
+    BTreeNode(bool leaf) : isLeaf(leaf) {}
+};
+
+// B-트리 클래스 정의
+class BTree {
+public:
+    BTreeNode* root;
+
+    BTree() {
+        root = new BTreeNode(true);
+    }
+
+    BTreeNode* find(int v) {
+        return find(root, v);
+    }
+
+private:
+    int* find(BTreeNode* C, int v) {
+        while (!C->isLeaf) {
+            int i = 0;
+			// v가 현재 키보다 작거나 같을 때 멈추도록 함 -> v <= ki인(v보다 큰) 최소값 i를 찾는다
+            while (i < C->keys.size() && v > C->keys[i]) {
+                i++;
+            }
+
+            if (i == C->keys.size()) {
+                C = C->children.back();
+            } else if (v == C->keys[i]) {
+           
+            } else {
+                C = C->children[i];
+            }
+        }
+
+        for (int i = 0; i < C->keys.size(); i++) {
+            if (C->keys[i] == v) {
+                return &C->keys[i];  // 키의 포인터 반환 pi
+            }
+        }
+
+        return nullptr;
+    }
+};
+
+int main() {
+    BTree tree;
+    // 트리에 데이터를 삽입하는 코드가 필요합니다.
+
+    int searchKey = 10;
+    int* result = tree.find(searchKey);
+
+    if (result != nullptr) {
+        std::cout << "키 " << searchKey << "를 찾았습니다: " << *result << std::endl;
+    } else {
+        std::cout << "키 " << searchKey << "를 찾을 수 없습니다." << std::endl;
+    }
+
+    return 0;
+}
+```
+
 ### B+트리 인덱스 파일
 인덱스 순차파일의 주요 단점: 파일이 커질수록 인덱스를 찾아서 그 데이터를 연속으로 스캔하는 성능이 감소하는 것.
 B+트리 인덱스 구조는 삽입/삭제에도 성능을 유지한다.
