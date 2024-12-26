@@ -1,1 +1,12 @@
 public/
+
+**/company/cross-border/*
+**/company/database/*
+**/company/infrastructure/curl*
+**/company/domain
+**/company/ncs-rank/data-analysis/*
+**/company/**/extension.md
+**/company/**/fcm*
+
+**/ai-service/company/*
+**/data-warehouse/OLAP/1.snowflake.md

@@ -1,10 +1,71 @@
 +++
 title = 'React Component'
-date = 2024-02-25T00:20:22+09:00
+date = 2024-10-25T00:20:22+09:00
 draft = true
 +++
 ## React Component
 
+
+propTypes를 사용하여 사용자 정의 검증 함수를 작성
+
+### custom component
+🟡(요약)
+- React.createElement 대신 Capital Letter로 시작하는 함수를 사용 -> JSX 가능.
+Babel로 하여금 그 함수를 그대로 reference 하도록 알려줌.
+- React.createElement는 type에 함수가 오면, 그 함수 안으로 들어가 다른 React element가 있는지 보고 그걸 create 한다.
+
+
+🍎 it's Babel that's responsible for taking our JSX and compiling it
+to React.createElement calls 
+
+JSX는 JavaScript XML의 약자로, **JavaScript 코드 안에서 HTML과 유사한 마크업**을 작성할 수 있게 해주는 React의 문법 확장입니다. JSX를 사용하면 React 요소를 더 직관적이고 선언적으로 작성할 수 있습니다.
+
+1. 🍎 JSX를 사용하지 않은 방식:
+   ```javascript
+   React.createElement(message, {children: 'Hello World'})
+   ```
+
+2. 🍎 JSX를 사용한 방식:
+   ```jsx
+   <message>Hello World</message>
+   ```
+
+이 두 코드는 동일한 결과를 생성합니다. 하지만 JSX 버전이 더 읽기 쉽고 HTML과 유사하여 이해하기 쉽습니다.
+
+JSX를 사용할 때 주의할 점:
+
+1. 컴포넌트 이름은 대문자로 시작해야 합니다:
+   ```jsx
+   <Message>Hello World</Message>
+   ```
+   소문자로 시작하면 React는 이를 내장 HTML 요소로 취급합니다.
+
+2. 🍎 props 전달:
+   ```jsx
+   <Message someProps="value">Hello World</Message>
+   ```
+   이는 `React.createElement(Message, {someProps: "value", children: "Hello World"})`와 동일합니다.
+
+3. 자식 요소:
+   🟢JSX에서 태그 사이의 내용은 자동으로 'children' prop으로 전달됩니다.
+
+4. 표현식 사용:
+   ```jsx
+   <Message>{1 + 1}</Message>
+   ```
+   중괄호 {}를 사용하여 JavaScript 표현식을 삽입할 수 있습니다.
+
+5. 셀프 클로징 태그:
+   ```jsx
+   <Message />
+   ```
+   자식이 없는 경우 이렇게 작성할 수 있습니다.
+
+🍎 JSX는 결국 `React.createElement` 호출로 변환됩니다. 이 변환 과정은 일반적으로 Babel과 같은 도구에 의해 수행됩니다. 따라서 JSX는 React 사용을 더 편리하게 만들어주는 문법적 설탕(syntactic sugar)이라고 볼 수 있습니다.
+
+
+---
+### Key Props id
 key prop에 인덱스를 넣으면 remove, add시 순서를 보장하지 않게된다..
 고유 id를 넣어야 함. 
 

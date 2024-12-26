@@ -5,6 +5,44 @@ draft = true
 +++
 ## Vue 이벤트 핸들링
 
+```js
+// ------ Parent ------
+<FeedForm :feed="feed" @update:feed="$event => (feed = $event)" />
+// 위랑 같음. v-model이 이벤트 관리를 해줘서. value, emit 따로 설정하는것보다 편함.
+<FeedForm v-model:feed="feed" />
+
+// ------ Child ------
+<script lang="ts" setup>
+import { type PropType } from 'vue';
+import type { Feed } from '@/models/feed';
+
+const props = defineProps({
+  feed: {
+    type: Object as PropType<Feed>,
+    required: true,
+  },
+});
+
+const emit = defineEmits(['update:feed']);
+const updateField = (field: keyof Feed, value: string) => {
+  emit('update:feed', { ...props.feed, [field]: value });
+};
+</script>
+
+<template>
+  <div class="form-group">
+    <div class="form-item">
+      <label class="form-label" for="link">Link</label>
+      <input
+        type="text"
+        id="link"
+        :value="feed.link"
+        @input="updateField('link', ($event.target as HTMLInputElement).value)"
+      />
+```
+
+---
+
 ### Ref
 툴팁 다른곳 클릭하면 없어지게 하기
 
@@ -205,3 +243,114 @@ const showViewModal = ref(false);
 		v-model="showViewModal"
 	/>
 ```
+
+---
+### defineModel로 props, emit 대체 가능하나
+
+`defineModel`을 사용하기 어려운 경우들 있음.
+
+1. **복잡한 데이터 변환이 필요한 경우**
+```typescript
+// 값을 변환하거나 가공해야 하는 경우
+const props = defineProps<{
+  value: string
+}>()
+const emit = defineEmits<{
+  'update:modelValue': [value: string]
+}>()
+
+// 예: 항상 대문자로 변환해서 emit
+const updateValue = (val: string) => {
+  emit('update:modelValue', val.toUpperCase())
+}
+```
+
+2. **여러 이벤트를 함께 처리해야 하는 경우**
+```typescript
+const props = defineProps<{
+  value: string
+}>()
+const emit = defineEmits<{
+  'update:modelValue': [value: string]
+  'change': [value: string]
+  'input': [value: string]
+}>()
+
+const handleInput = (val: string) => {
+  emit('update:modelValue', val)
+  emit('input', val)
+}
+```
+
+3. **조건부 업데이트가 필요한 경우**
+```typescript
+const props = defineProps<{
+  value: string
+}>()
+const emit = defineEmits<{
+  'update:modelValue': [value: string]
+}>()
+
+const updateValue = (val: string) => {
+  // 특정 조건에서만 업데이트
+  if (val.length <= 10) {
+    emit('update:modelValue', val)
+  }
+}
+```
+
+4. **비동기 처리가 필요한 경우**
+```typescript
+const props = defineProps<{
+  value: string
+}>()
+const emit = defineEmits<{
+  'update:modelValue': [value: string]
+}>()
+
+const updateValue = async (val: string) => {
+  // API 호출 등 비동기 처리 후 업데이트
+  const result = await validateValue(val)
+  if (result.isValid) {
+    emit('update:modelValue', val)
+  }
+}
+```
+
+5. **디바운스/쓰로틀링이 필요한 경우**
+```typescript
+const props = defineProps<{
+  value: string
+}>()
+const emit = defineEmits<{
+  'update:modelValue': [value: string]
+}>()
+
+const debouncedUpdate = useDebounceFn((val: string) => {
+  emit('update:modelValue', val)
+}, 300)
+```
+
+6. **중간 상태 관리가 필요한 경우**
+```typescript
+const props = defineProps<{
+  value: string
+}>()
+const emit = defineEmits<{
+  'update:modelValue': [value: string]
+}>()
+
+const localValue = ref(props.value)
+
+// 중간 상태를 거쳐 최종적으로 emit
+watch(localValue, (newVal) => {
+  if (someCondition(newVal)) {
+    emit('update:modelValue', newVal)
+  }
+})
+```
+
+이러한 경우들에서는 `props`와 `emit`을 각각 정의하는 것이 더 명확하고 유연한 제어가 가능합니다.
+
+---
+

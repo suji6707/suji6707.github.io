@@ -4,7 +4,53 @@ date = 2024-10-21T00:20:22+09:00
 draft = true
 +++
 ## Google Login
+정석: https://www.robinwieruch.de/how-to-roll-your-own-auth/
 
+---
+쿠키랑 Authorization은 다름.
+- 쿠키: 세션 관리, 사용자 설정 저장 등 `request.headers.cookie;`
+- Authorization: API 인증, 토큰 기반 인증 시스템 등 `request.headers.authorization;`
+
+🍎쿠키의 세션을 체크하는 것이므로 barer 토큰은 안쓰고, req.cookies['key']가 중요
+
+---
+### API 문서 - HTTP/REST
+1. 점진적 승인: code 받기
+- GET 요청
+```
+https://accounts.google.com/o/oauth2/v2/auth?
+ scope=https%3A//www.googleapis.com/auth/drive.metadata.readonly&
+ access_type=offline&
+ include_granted_scopes=true&
+ response_type=code&
+ state=state_parameter_passthrough_value&
+ redirect_uri=https%3A//oauth2.example.com/code&
+ client_id=client_id
+```
+
+2. 승인 코드를 토큰으로 교환: 액세스토큰 받기
+- POST 요청, body는 없고 params url encoded로 정보 전달함. 
+- 결과의 `id_token`에 scope에 해당하는 정보 담겨있음. 디코딩.
+```
+POST /token HTTP/1.1
+Host: oauth2.googleapis.com
+Content-Type: application/x-www-form-urlencoded
+
+code=4/P7q7W91a-oMsCeLvIaQm6bTrgtp7&
+client_id=your_client_id&
+client_secret=your_client_secret&
+redirect_uri=https%3A//oauth2.example.com/code&
+grant_type=authorization_code
+```
+
+3. API 호출
+```
+GET /drive/v2/files HTTP/1.1
+Host: www.googleapis.com
+Authorization: Bearer access_token
+```
+
+---
 ### oAuth callback을 서버로 보내는 방식
 💎 엄밀히 말하면 oauth 콜백을 서버로 보내는 게 맞다.
 클라에서 state가 일치한다고 하면 무조건 믿어야하는건데, 서버가 그래서는 안됨.
@@ -117,7 +163,7 @@ def auth_callback():
 1. 서버가 HTTP 응답 헤더에 Set-Cookie를 포함시켜 쿠키 정보를 전송합니다.
 2. 브라우저는 이 정보를 받아 로컬에 저장합니다.
 
-브라우저의 자동 포함 원리:
+🟢브라우저의 자동 포함 원리:
 1. 요청 생성: 브라우저가 웹 요청을 준비할 때
 2. 쿠키 확인: 저장된 쿠키 중 해당 요청의 도메인, 경로와 일치하는 것을 찾습니다.
 3. 헤더 추가: 일치하는 쿠키를 요청의 Cookie 헤더에 추가합니다.
