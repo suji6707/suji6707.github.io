@@ -3,7 +3,7 @@ categories = ['Database']
 series = ['Postgres']
 tags = ['Postgres']
 title = "Postgres"
-date = 2024-8-12T22:50:44+09:00
+date = 2024-08-12T22:50:44+09:00
 draft = true
 +++
 
