@@ -10,7 +10,7 @@ public/
 **/company/data-warehouse/*
 **/company/**/ai-service/*
 
-**/ai-service/company/*
+
 **/data-warehouse/OLAP/1.snowflake.md
 
 **/_roadmap/*

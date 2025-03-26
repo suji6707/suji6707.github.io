@@ -3,8 +3,42 @@ title = 'SerpBear'
 date = 2024-10-27T00:20:22+09:00
 draft = true
 +++
-## SerpBear
+# SerpBear
 
+### 💎 SerpBear 아이디어
+외부 API를 어떤식으로 불러서 사용하는지 정도만.
+이걸 활용해서 "나는 뭘 만들어야겠다"
+차라리 yournextstore 를 따라해보던가.
+
+pages/api
+- adwords.ts
+- ideas.ts
+- insight.ts
+- searchconsole.ts
+
+
+<SerpBear>
+https://blackkiwi.net/
+
+POST /api/domains
+{
+    "domains": [
+        {
+            "keywordCount": 0,
+            "tags": "[]",
+            "notification": true,
+            "notification_interval": "daily",
+            "notification_emails": "",
+            "ID": 2,
+            "domain": "blackkiwi.net",
+            "slug": "blackkiwi-net",
+            "lastUpdated": "2024-10-29T14:40:00.136Z",
+            "added": "2024-10-29T14:40:00.136Z"
+        }
+    ]
+}
+
+GET `api/domains?withstats=true
 
 
 ---

@@ -110,15 +110,6 @@ build 할 때 마다 CSS, JS 파일 명이 dist 폴더 내에 무작위로 다�
 
 
 ---
-ts-node : 컴파일할 필요 없이 바로.
-원래는 이게 정석
-"compile": "tsc && node ./build/src/app.js",
-"start": "nodemon -e ts --exec \"npm run compile\""
-
-// "start": "nodemon -e ts --watch 'src/**/*.ts' --exec 'ts-node' src/app.ts", 
-
-
----
 ## 오라클
 
 코어1개짜리 서버 4대, 고정IP 하나씩 각각 할당하고

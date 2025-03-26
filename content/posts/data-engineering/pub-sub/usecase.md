@@ -33,6 +33,18 @@ subscriber는 컨트롤러 포트인 + 유스케이스.
 
 
 ---
+### DuckDB 관련 memory leak도 있었음
+
+🎆🎆 BullMQ memory leak 🎆🎆
+ps -o rss,vsz,pid -ef | grep 'node dist/main' => rss가 실제 물리메모리
+
+bullmq redis stream 옵션? max len - 효과없음.
+
+removeOnComplete 효과없고
+
+node global gc 효과없고 (expose gc)
+
+---
 ### 문제상황
 
 MaxListenersExceededWarning: Possible EventEmitter memory leak detected. 11 error listeners added to [Redis]. Use emitter.setMaxListeners() to increase limit

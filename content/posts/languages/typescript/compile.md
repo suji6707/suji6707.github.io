@@ -4,6 +4,16 @@ series = ['Javascript']
 date = 2024-07-30T22:50:44+09:00
 draft = true
 +++
+
+### package.json
+ts-node : 컴파일할 필요 없이 바로.
+원래는 이게 정석
+"compile": "tsc && node ./build/src/app.js",
+"start": "nodemon -e ts --exec \"npm run compile\""
+
+// "start": "nodemon -e ts --watch 'src/**/*.ts' --exec 'ts-node' src/app.ts", 
+
+---
 ## SWC
 
 💎 SWC
