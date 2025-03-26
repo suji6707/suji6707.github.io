@@ -5,6 +5,50 @@ draft = true
 +++
 ## 링크트리 clone
 
+💎💎💎💎 LINK HUB 💎💎💎💎
+프로필 여러개 OK.
+프로필 안에 링크 아카이빙한다고 보면 됨.
+좌우 스와이프는 X.
+기본적으로 아래로 스크롤임.
+
+우선은 유저가 수동으로 링크(특정 사이트/소셜계정의 포스트)를 넣으면 업로드되지만
+나중에는 피드형태로 업데이트, 알람이 오면 내가 그걸 소비하는 방식도 좋을듯.
+조금 쓸쓸한 SNS? but 여기에 AI로 요약을 넣어준다던가.
+
+기본적으로는 링크를 넣으면 TLDR 요약글처럼 보여지는 것이면 좋겠음.
+
+한 프로필내 여러 아카이빙 그룹이 있고
+그 그룹내 여러 링크들.
+
+
+
+@@@TODO Linkhub
+Authguard 를 하나더 만들어서 항상 true 반환, 
+req.loginStatus 같은거 붙여서 주기
+
+new AugthGuard(인자) 활용해도 좋음.
+
+🔴 다른 AuthGuard 하나 더. 항상 true하되 쿠키있으면 req.user 넣기. 없으면 edit/wrench 없으면 됨.
+
+🔴 onMounted로 async 함수들 옮김. 어차피 인스턴스생성이 훨씬 빨라서.
+
+onMounted(() => {
+  fetchLoginUser();
+  fetchViewedUser();
+});
+watch -> 받아온 값을 가지고 연산.
+
+🔴 storeToRefs
+
+
+
+이건 블로그 페이지의 content인데, 이걸 한국어로 요약해줘.
+script나 style 태그가 있다면 무시하고,
+본문 외에 댓글이나 광고글, 글목록 리스트 등이 있다면 무시해줘
+
+
+---
+
 typeorm / prisma. utc / drizzle
 
 컨셉 생각해보기. o1

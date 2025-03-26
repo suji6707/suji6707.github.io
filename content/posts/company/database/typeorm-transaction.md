@@ -18,16 +18,19 @@ draft = true
 
 ---
 ### 트랜잭션 충돌 해결
-어제 payment-api에서 트랜잭션 문제를 해결해서, 관련해서 공유드립니다~
+payment-api에서 트랜잭션 문제 해결
+
 @Transactional 등 트랜잭션 맥락에 있을 때는
 아래 네번째 그림처럼
 getEntityManager를 사용해서 해당 네임스페이스에 있는 엔터티매니저를 가지고 트랜잭션을 수행해야
 트랜잭션이 중복생성되지 않는거 같습니다 !
 ( (isTransactionActive 로 여부 판단가능)
+
 초대하기-구독해지 트랜잭션 에러  (이미지 순서대로)
 초대하기가 @Transactional 트랜젝션으로 이미 래핑된 상태에서
 구독/영수증 저장시 transaction 함수를 부르게되면 (saveSubscriptionAndReceiptLog)
 트랜잭션이 충돌해서 ER_LOCK_WAIT_TIMEOUT 에러가 납니다.
+
 3. Typeorm에선 하나의 트랜잭션에서 함수들을 실행한다고 하는데 실제로는 save 횟수만큼 트랜잭션이 실행되는거같아요.. 락 걸린 상태에서 select * from INNODB_LOCKS; 실행시 알수있는듯
 
 ![alt text](image.png)
