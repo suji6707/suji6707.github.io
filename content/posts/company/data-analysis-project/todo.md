@@ -5,7 +5,14 @@ draft = true
 +++
 ## Review Analysis
 
-@@@@ 분석툴 TODO !!
+
+keyword_types 테이블이랑 조인
+- 마찬가지로 파이썬으로 duckdb 쿼리, keyword_id IN에 1만개 넣어서. 
+(keyword_ids_only_valid_2024_search.csv 첫번째 row string 전체 1.8만개임)
+- pc_shopping_tab, shopping_search_order 💎3 이하💎, (0은 아니어야)이면 충분히 '쇼핑성'으로 구분할만.
+얘네들만 keyword랑 나머지 항목들 뽑아내기. (쇼핑탭오더, ms, prdcnt, 매년 growth)
+
+### 분석툴 TODO
 🔮🔮🔮🔮🔮
 분석이 아니라 분석이 가능한 구조만 만들어본다.
 

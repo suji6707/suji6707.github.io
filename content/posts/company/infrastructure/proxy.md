@@ -8,9 +8,21 @@ draft = true
 +++
 ## Squid
 
-### Connect to a Private network via proxy server from macOS
+🟧🟧🟧 Squid 🟧🟧🟧 
+/opt/homebrew/opt/squid/sbin/squid -N -d\ 1
+
+
+프록시서버의 IP주소 및 포트
+curl --proxy http://localhost:3128 https://suzee.xyz
+
+curl --proxy "https://suzee.xyz" "https://httpbin.org/ip"
+
+find /opt/homebrew -name "squid.conf"
+/opt/homebrew/etc/squid.conf
+/opt/homebrew/Cellar/squid/6.10/.bottle/etc/squid.conf
 
 ---
+### Connect to a Private network via proxy server from macOS
 
 Homebrew를 통해 설치된 Squid의 설정 파일 경로가 다를 수 있습니다. Homebrew는 일반적으로 `/usr/local/etc/squid` 또는 `/opt/homebrew/etc/squid` 경로를 사용합니다. Squid 설정 파일의 위치를 확인하고 수정하는 방법을 안내해 드리겠습니다.
 

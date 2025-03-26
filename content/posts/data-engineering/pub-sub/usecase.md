@@ -44,6 +44,13 @@ removeOnComplete 효과없고
 
 node global gc 효과없고 (expose gc)
 
+🍋 메모리가 드라마틱하게 개선되진 않았음.
+ps -o rss,vsz,pid -ef | grep "python main.py"   
+-> 맨앞이 메모리인데 30MB 정도씩 증가함.
+원래는 몇백MB. 데이터량으로 보면 1~2MB만 증가했어야하는데..
+
+pm2 list에도 메모리 나옴.
+
 ---
 ### 문제상황
 

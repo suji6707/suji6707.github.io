@@ -6,6 +6,27 @@ title = "Elastic Search Logstash"
 date = 2024-03-30T22:50:44+09:00
 draft = true
 +++
+
+
+🟡🟡🟡🟡🟡 ElasticSearch 🟡🟡🟡🟡🟡 
+보통 etc에 설정파일들이 있음.
+redis, nginx 다 마찬가지. 
+
+A. /dev/null  > 이 로그를 갖다 버리겠다
+B. 1>/dev/null
+C. 2>/dev/null
+
+1의 의미는 STDOUT(standard output)
+2의 의미는 STRERR(standard error)
+& 는 둘다.
+아까 docker logs to file 할 때 &는 둘다 출력하겠다는 뜻인듯.
+
+두번째 읽을때도 첨부터 읽어야하는데 읽지 않았음.
+sincedb_path를 설정하지 않으면 디폴트로 마지막부터 읽는건데
+처음부터 읽으려면 (우리는 테스트중이라 첨부터 읽을필요)
+sincedb_path => "/dev/null" 로 해야 
+
+
 ## Introduction
 
 로그스태시는 파이프라인 도구다.

@@ -1,14 +1,20 @@
 public/
 
-**/company/cross-border/*
-**/company/database/*
-**/company/infrastructure/curl*
-**/company/domain
-**/company/ncs-rank/data-analysis/*
-**/company/extension/*
+**/company/**/cross-border/*
+**/company/**/database/*
+**/company/**/infrastructure/curl*
+**/company/**/domain
+**/company/**/ncs-rank/data-analysis/*
+**/company/**/extension/*
 **/company/**/fcm*
-**/company/data-warehouse/*
+**/company/**/data-warehouse/*
 **/company/**/ai-service/*
+**/company/**/infrastructure/monitoring/*
+
+**/company/**/_roadmap/*
+**/company/**/_TASKs/*
+**/company/**/_debug_skills/*
+**/company/**/_to_think/*
 
 
 **/data-warehouse/OLAP/1.snowflake.md

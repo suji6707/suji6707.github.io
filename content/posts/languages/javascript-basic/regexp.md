@@ -75,3 +75,18 @@ console.log(text.match(regex));  // 출력: ["#hashtag", "#doublehashtag"]
 단어 문자(`\w`), 하이픈(`-`), 밑줄(`_`), 마침표(`.`)를 제외한 모든 문자를 찾습니다. `g` 플래그는 전역 검색을 의미하여 문자열 전체에서 일치하는 모든 부분을 찾습니다.
 
 ---
+# 캡처링 그룹
+- (\w+) 가 캡처하려는 문자열.
+- 아래 예시에서는 match 결과의 인덱스 [1]로 github.com 앞의 도메인만 가져올 수. 
+
+var url = 'https://rhostem.github.com'
+var domain = /https?:\/\/(\w+)\.github.com/
+url.search(domain) // 0
+url.match(domain) // ["https://rhostem.github.com", "rhostem", index: 0, ...]
+
+https?: http나 https와 매칭
+://: ://와 매칭
+(\w+): 단어 문자로 이루어진 문자열을 캡처하는 그룹
+\.github\.com: .github.com과 매칭
+
+
